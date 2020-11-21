@@ -19,5 +19,5 @@ Where:
 
     
 This repo contains packages to test the AnalyticAnomalousCoupling and plotting the comparison.
-Downlaod this repo and place all of its content inside the AnalyticAnomalousCoupling folder.
+Downlaod this repo and place all of its content inside the `AnalyticAnomalousCoupling/test` folder.
 Run `bash run.sh` to generate comparison plots for various scenarios and for all the three models
