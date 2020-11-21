@@ -149,11 +149,41 @@ class CombinePlotManager:
             for conf in plot_mod.keys():
                 getattr(graphScan, conf)(plot_mod[conf])
 
-        ymax = 10
-
         x_val = ROOT.Double()
         y_val = ROOT.Double()
 
+        x_vals = []
+        y_vals = []
+        
+        for i in range(graphScan.GetN()):
+            graphScan.GetPoint(i, x_val, y_val)
+            y_vals.append(copy.copy(y_val))
+            x_vals.append(copy.copy(x_val))
+
+        #x_ = [x for _,x in sorted(zip(ys,xs))]
+
+        #THE FOLLOWING SUPPOSE A PARABOLIC TREND OF THE LL
+        # (AT LEAST AT THE HEIGHT OF THE MAXIMUM)
+        x_vals, y_vals = zip(*sorted(zip(x_vals, y_vals)))
+
+        ymax = max(y_vals)/2
+        if ymax > 10: ymax = 10
+
+        x_ = []
+
+        count = 0
+        for x,y in zip(x_vals, y_vals):
+            if y - ymax <= 0 and count == 0:
+                x_.append(copy.copy(x))
+                count+=1
+            elif y - ymax >= 0 and count == 1:
+                x_.append(copy.copy(x))
+                break
+
+        if len(x_) != 2 : x_ = [-10,10]
+
+        x_ = sorted(x_)
+        """
         xs = []
         ys = []
         #scanning for x axis range
@@ -162,28 +192,34 @@ class CombinePlotManager:
             if y_val - ymax >= 0:
                 ys.append(copy.copy(y_val - ymax))
                 xs.append(copy.copy(x_val))
-            
+        
         x_ = [x for _,x in sorted(zip(ys,xs))]
 
+        """
+        
         graphScan.SetMaximum(ymax)
-        graphScan.GetXaxis().SetRangeUser(min(x_[0],x_[1])-1., max(x_[0],x_[1])+1.)
+
+        x_min = x_[0] - abs(0.2*x_[0])
+        x_max = x_[1] + abs(0.2*x_[1])
+        graphScan.GetXaxis().SetRangeUser(x_min, x_max)
 
         #one and two sigma levels
 
-        o_sigma = ROOT.TLine(min(x_[0],x_[1])-1., 1, max(x_[0],x_[1])+1., 1)
+        o_sigma = ROOT.TLine(x_min, 1, x_max, 1)
         o_sigma.SetLineStyle(7)
         o_sigma.SetLineWidth(2)
         o_sigma.SetLineColor(ROOT.kGray+2)
-        t_sigma = ROOT.TLine(min(x_[0],x_[1])-1., 3.84, max(x_[0],x_[1])+1., 3.84)
+        t_sigma = ROOT.TLine(x_min, 3.84, x_max, 3.84)
         t_sigma.SetLineStyle(7)
         t_sigma.SetLineWidth(2)
         t_sigma.SetLineColor(ROOT.kGray+2)
 
         #text for horizontal lines
 
+        x_frac = x_min + abs(0.05*(x_max-x_min))
         self.LS1D[inclass] = copy.deepcopy(graphScan)
         self.NLLlines[inclass] = {"1": copy.deepcopy(o_sigma), "2": copy.deepcopy(t_sigma)}
-        self.NLLtext[inclass] = {"1": (min(x_[0],x_[1])-.5, 1.05), "2": (min(x_[0],x_[1])-.5, 3.89)}
+        self.NLLtext[inclass] = {"1": (x_frac, 1.05), "2": (x_frac, 3.89)}
 
         f.Close()
 
