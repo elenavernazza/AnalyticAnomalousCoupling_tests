@@ -128,6 +128,7 @@ class CombinePlotManager:
 
         f = ROOT.TFile(rfile)
         limit = f.Get("limit")
+        
         to_draw = ROOT.TString("2*deltaNLL:{}".format(op))
         n = limit.Draw( to_draw.Data() , "deltaNLL<{} && deltaNLL>{}".format(self.NLL_lims[0], self.NLL_lims[1]), "l")
 
@@ -166,6 +167,7 @@ class CombinePlotManager:
         # (AT LEAST AT THE HEIGHT OF THE MAXIMUM)
         x_vals, y_vals = zip(*sorted(zip(x_vals, y_vals)))
 
+        
         ymax = max(y_vals)/2
         if ymax > 10: ymax = 10
 
@@ -183,26 +185,13 @@ class CombinePlotManager:
         if len(x_) != 2 : x_ = [-10,10]
 
         x_ = sorted(x_)
-        """
-        xs = []
-        ys = []
-        #scanning for x axis range
-        for i in range(graphScan.GetN()):
-            graphScan.GetPoint(i, x_val, y_val)
-            if y_val - ymax >= 0:
-                ys.append(copy.copy(y_val - ymax))
-                xs.append(copy.copy(x_val))
         
-        x_ = [x for _,x in sorted(zip(ys,xs))]
-
-        """
-        
-        graphScan.SetMaximum(ymax)
+        #graphScan.SetMaximum(ymax)
 
         x_min = x_[0] - abs(0.2*x_[0])
         x_max = x_[1] + abs(0.2*x_[1])
-        graphScan.GetXaxis().SetRangeUser(x_min, x_max)
-
+        #graphScan.GetXaxis().SetRangeUser(x_min, x_max)
+        
         #one and two sigma levels
 
         o_sigma = ROOT.TLine(x_min, 1, x_max, 1)
@@ -238,6 +227,7 @@ class CombinePlotManager:
         x = np.ndarray((n), 'd', limit.GetV1())
         y = np.ndarray((n), 'd', limit.GetV2())
         z = np.ndarray((n), 'd', limit.GetV3())
+
         graphScan = ROOT.TGraph2D(n,x,y,z)
 
         graphScan.GetZaxis().SetTitle("-2 #Delta LL")
@@ -357,6 +347,8 @@ class CombinePlotManager:
 
         leg = ROOT.TLegend(legcoord[0], legcoord[1], legcoord[2], legcoord[3])
         leg.SetBorderSize(Bordersize)
+        if hasattr(self, "legtit"):
+            leg.SetHeader(self.legtit)
         
         if not all(i for i in leg_titles.keys() for i in to_draw.keys()): sys.exit("[ERROR]")
         for g in leg_titles.keys():
