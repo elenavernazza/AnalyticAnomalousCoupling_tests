@@ -168,7 +168,7 @@ parser.add_argument('--inFolders',     dest='inFolders',     help='comma separat
 parser.add_argument('--keys',     dest='keys',     help='comma separated list of keys for each folder output of mkDatacard', required = False, default="proc1,proc2")
 parser.add_argument('--prefix',     dest='prefix',     help='comma separated list of prefix of same len of folder list', required = True)
 parser.add_argument('--models',     dest='models',     help='comma separated list of models name', required = False, default="EFT,EFTNeg,EFTNeg-alt")
-parser.add_argument('--do',     dest='do',     help='name .txt of the datacards coimbined', required = False, default="tot")
+parser.add_argument('--do',     dest='do',     help='name .txt of the datacards coimbined', required = False, default="")
 parser.add_argument('--ig_op',     dest='ig_op',     help='comma separated list of operators you want to ignore', required = False, default = "")
 parser.add_argument('--ig_var',     dest='ig_var',     help='comma separated list of variables you want to ignore', required = False, default = "")
 parser.add_argument('--out',     dest='out',     help='output folder name', required = False, default="combination_results")
@@ -284,11 +284,12 @@ for op in tqdm(commonops):
             
             os.chdir(cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]))
 
-            os.system("combineCards.py datacard_{}.txt datacard_{}.txt > datacard_{}.txt".format(key1, key2, key3))
+            os.system("combineCards.py datacard_{}.txt datacard_{}.txt > datacard{}.txt".format(key1, key2, key3))
+            os.system("rm datacard_{}.txt, datacard_{}.txt".format(key1, key2))
             
             os.chdir(global_path)
 
-        makeExecRunt(model, var_fol_name, [op], cp, key1 + "_" + key2, "datacard_{}.txt".format(key3))
+        makeExecRunt(model, var_fol_name, [op], cp, key1 + "_" + key2, "datacard{}.txt".format(key3))
         makeExecRunc(var_fol_name, [op], cp, key1 + "_" + key2)
 
 
