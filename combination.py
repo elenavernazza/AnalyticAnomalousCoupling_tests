@@ -88,7 +88,7 @@ def makeActivations(outdir, models, prefix):
     os.chmod(file_name, st.st_mode | stat.S_IEXEC)
 
 
-def makeExecRunt(model, variables, ops, outdir,proc):
+def makeExecRunt(model, variables, ops, outdir,proc, tag):
     #creates an executable to create binary workspaces after running mkDatacards.py
 
     modeltot2w = {
@@ -111,8 +111,8 @@ def makeExecRunt(model, variables, ops, outdir,proc):
     for var in variables:
         f.write("#-----------------------------------\n")
         f.write("cd datacards/{}/{}\n".format(proc,var))
-        to_w = "text2workspace.py  datacard.txt  -P HiggsAnalysis.AnalyticAnomalousCoupling.AnomalousCoupling{}:analiticAnomalousCoupling{}  -o   model.root \
-        --X-allow-no-signal --PO eftOperators={}".format(mod, mod, ",".join(op for op in ops))        
+        to_w = "text2workspace.py  {}.txt  -P HiggsAnalysis.AnalyticAnomalousCoupling.AnomalousCoupling{}:analiticAnomalousCoupling{}  -o   model.root \
+        --X-allow-no-signal --PO eftOperators={}".format(tag, mod, mod, ",".join(op for op in ops))        
         if "alt" in model: to_w += " --PO  eftAlternative"
         
         to_w += "\n"
@@ -285,11 +285,11 @@ for op in tqdm(commonops):
             
             os.chdir(cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]))
 
-            os.system("combineCards.py datacard_{}.txt datacard_{}.txt > datacard_{}".format(key1, key2, key3))
+            os.system("combineCards.py datacard_{}.txt datacard_{}.txt > datacard_{}.txt".format(key1, key2, key3))
             
             os.chdir(global_path)
 
-        makeExecRunt(model, var_fol_name, [op], cp, key1 + "_" + key2)
+        makeExecRunt(model, var_fol_name, [op], cp, key1 + "_" + key2, "datacard_{}.txt".format(key3))
         makeExecRunc(var_fol_name, [op], cp, key1 + "_" + key2)
 
 
