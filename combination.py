@@ -172,6 +172,7 @@ parser.add_argument('--do',     dest='do',     help='name .txt of the datacards 
 parser.add_argument('--ig_op',     dest='ig_op',     help='comma separated list of operators you want to ignore', required = False, default = "")
 parser.add_argument('--ig_var',     dest='ig_var',     help='comma separated list of variables you want to ignore', required = False, default = "")
 parser.add_argument('--out',     dest='out',     help='output folder name', required = False, default="combination_results")
+parser.add_argument('--outPrefix',     dest='outPrefix',     help='output prefix name, default = none', required = False, default="")
 
 args = parser.parse_args()
 
@@ -218,6 +219,7 @@ for fol, prefix, k in tqdm(zip(processes, prefixes, keys)):
 print(" @ @ @ Making vars combo @ @ @")
 
 global_path = os.getcwd()
+outprefix = args.outPrefix
 
 key1 = all_dict.keys()[0]
 key2 = all_dict.keys()[1]
@@ -238,18 +240,18 @@ v2 = variables[variables.keys()[1]] #second process with its ops
 var_comb = list(itertools.product(v1,v2)) # [(1st p var, 2nd p var), ... ]
 
 for op in tqdm(commonops):
-    cp = args.out + "/" + key1 + "_" + key2 + "_" + op
+    cp = args.out + "/" + prefix + key1 + "_" + key2 + "_" + op
     mkdir(cp)
 
-    makeActivations(args.out, models, key1 + "_" + key2 + "_")
+    makeActivations(args.out, models, prefix + key1 + "_" + key2 + "_")
 
     for model in models:
         os.chdir(global_path)
-        cp = args.out + "/" + key1 + "_" + key2 + "_" + op + "/" + model
+        cp = args.out + "/" + prefix + key1 + "_" + key2 + "_" + op + "/" + model
         mkdir(cp)
-        cp = args.out + "/" + key1 + "_" + key2 + "_" + op + "/" + model + "/datacards/"
+        cp = args.out + "/" + prefix + key1 + "_" + key2 + "_" + op + "/" + model + "/datacards/"
         mkdir(cp)
-        cp = args.out + "/" + key1 + "_" + key2 + "_" + op + "/" + model + "/datacards/" + key1 + "_" + key2
+        cp = args.out + "/" + prefix + key1 + "_" + key2 + "_" + op + "/" + model + "/datacards/" + key1 + "_" + key2
         mkdir(cp)
 
         var_fol_name = []
@@ -260,7 +262,7 @@ for op in tqdm(commonops):
             path_1_dat = os.path.abspath(path_1_dat)
             path_2_dat = os.path.abspath(path_2_dat)
 
-            cp = args.out + "/" + key1 + "_" + key2 + "_" + op + "/" + model 
+            cp = args.out + "/" + prefix + key1 + "_" + key2 + "_" + op + "/" + model 
 
             mkdir(cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]))
             os.system("cp {} {}/datacard_{}.txt".format(path_1_dat, cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]), key1))
@@ -272,7 +274,7 @@ for op in tqdm(commonops):
 
             os.chdir(cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]))
 
-            os.system("combineCards.py datacard_{}.txt datacard_{}.txt > datacard_{}".format(key1, key2, key3)
+            os.system("combineCards.py datacard_{}.txt datacard_{}.txt > datacard_{}".format(key1, key2, key3))
 
         makeExecRunt(model, var_fol_name, [op], cp, key1 + "_" + key2)
         makeExecRunc(var_fol_name, [op], cp, key1 + "_" + key2)
