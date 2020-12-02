@@ -284,8 +284,10 @@ for op in tqdm(commonops):
             
             os.chdir(cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]))
 
-            os.system("combineCards.py datacard_{}.txt datacard_{}.txt > datacard{}.txt".format(key1, key2, key3))
-            os.system("rm datacard_{}.txt, datacard_{}.txt".format(key1, key2))
+            os.system("combineCards.py {}=datacard_{}.txt {}=datacard_{}.txt > datacard{}.txt".format(key1, key1 key2, key2 key3))
+            os.system("ls")
+            print("rm datacard_{}.txt, datacard_{}.txt".format(key1, key2))
+            os.system("rm datacard_{}.txt datacard_{}.txt".format(key1, key2))
             
             os.chdir(global_path)
 
