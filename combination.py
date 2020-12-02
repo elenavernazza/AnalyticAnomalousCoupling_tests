@@ -173,6 +173,7 @@ parser.add_argument('--ig_op',     dest='ig_op',     help='comma separated list 
 parser.add_argument('--ig_var',     dest='ig_var',     help='comma separated list of variables you want to ignore', required = False, default = "")
 parser.add_argument('--out',     dest='out',     help='output folder name', required = False, default="combination_results")
 parser.add_argument('--outPrefix',     dest='outPrefix',     help='output prefix name, default = none', required = False, default="")
+parser.add_argument('--inputDtag',     dest='inputDtag',     help='Name of process - wise datacards, all datacard must have the same name for each process. No .txt as final', required = False, default="*,*")
 
 args = parser.parse_args()
 
@@ -184,6 +185,7 @@ models = args.models.split(',')
 ig_op = args.ig_op.split(',')
 ig_var = args.ig_var.split(',')
 keys = args.keys.split(',')
+tags = args.inputDtag.split(',')
 
 if len(processes) != 2: sys.exit("AAAAH you can't do that yet... you greedy man")
 
@@ -193,7 +195,7 @@ variables = {}
 
 print(" @ @ @ Retrieving shapes and datacards @ @ @")
 
-for fol, prefix, k in tqdm(zip(processes, prefixes, keys)):
+for fol, prefix, k, tag in tqdm(zip(processes, prefixes, keys, tags)):
     subf = glob(fol + "/" + prefix + "*/")
     all_dict[k] = {}
     variables[k] = []
@@ -213,8 +215,8 @@ for fol, prefix, k in tqdm(zip(processes, prefixes, keys)):
                 if v not in variables[k]:
                     variables[k].append(v)
                 all_dict[k][op][model][v] = {}
-                all_dict[k][op][model][v]['datacard'] = glob(var + "/*.txt")[0]
-                #all_dict[fol][op][model][v]['shapes'] = glob(var + "/shapes/*.root")[0]
+                all_dict[k][op][model][v]['datacard'] = glob(var + "/{}.txt".format(tag))
+                all_dict[fol][op][model][v]['shapes'] = glob(var + "/shapes/*.root")
 
 print(" @ @ @ Making vars combo @ @ @")
 
@@ -240,18 +242,19 @@ v2 = variables[variables.keys()[1]] #second process with its ops
 var_comb = list(itertools.product(v1,v2)) # [(1st p var, 2nd p var), ... ]
 
 for op in tqdm(commonops):
-    cp = args.out + "/" + prefix + key1 + "_" + key2 + "_" + op
+    cp = args.out + "/" + outprefix + key1 + "_" + key2 + "_" + op
     mkdir(cp)
 
-    makeActivations(args.out, models, prefix + key1 + "_" + key2 + "_")
+    makeActivations(args.out, models, outprefix + key1 + "_" + key2 + "_")
 
     for model in models:
-        os.chdir(global_path)
-        cp = args.out + "/" + prefix + key1 + "_" + key2 + "_" + op + "/" + model
+        cp = args.out + "/" + outprefix + key1 + "_" + key2 + "_" + op + "/" + model
         mkdir(cp)
-        cp = args.out + "/" + prefix + key1 + "_" + key2 + "_" + op + "/" + model + "/datacards/"
+        cp = args.out + "/" + outprefix + key1 + "_" + key2 + "_" + op + "/" + model + "/datacards/"
         mkdir(cp)
-        cp = args.out + "/" + prefix + key1 + "_" + key2 + "_" + op + "/" + model + "/datacards/" + key1 + "_" + key2
+        cp = args.out + "/" + outprefix + key1 + "_" + key2 + "_" + op + "/" + model + "/datacards/" + key1 + "_" + key2
+        mkdir(cp)
+        cp = args.out + "/" + outprefix + key1 + "_" + key2 + "_" + op + "/" + model + "/datacards/" + key1 + "_" + key2 + "/shapes/"
         mkdir(cp)
 
         var_fol_name = []
@@ -259,22 +262,32 @@ for op in tqdm(commonops):
             path_1_dat = all_dict[key1][op][model][wc[0]]['datacard']
             path_2_dat = all_dict[key2][op][model][wc[1]]['datacard']
 
+            shapes_1 = all_dict[key1][op][model][wc[0]]['shapes']
+            shapes_2 = all_dict[key2][op][model][wc[1]]['shapes']
+
             path_1_dat = os.path.abspath(path_1_dat)
             path_2_dat = os.path.abspath(path_2_dat)
+            shapes_1 = os.path.abspath(shapes_1) 
+            shapes_2 = os.path.abspath(shapes_2) 
 
-            cp = args.out + "/" + prefix + key1 + "_" + key2 + "_" + op + "/" + model 
-
+            cp = args.out + "/" + outprefix + key1 + "_" + key2 + "_" + op + "/" + model
+            
             mkdir(cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]))
-            os.system("cp {} {}/datacard_{}.txt".format(path_1_dat, cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]), key3))
-            os.system("cp {} {}/datacard_{}.txt".format(path_2_dat, cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]), key3))
+            os.system("cp {} {}/datacard_{}.txt".format(path_1_dat, cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]), key1))
+            os.system("cp {} {}/datacard_{}.txt".format(path_2_dat, cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]), key2))
 
-            var_fol_name.append("{}_{}".format(wc[0], wc[1]))
+            for sh_idx in range(len(shapes_1)):
+                os.system("cp {} {}".format(shapes_1[sh_idx], args.out + "/" + outprefix + key1 + "_" + key2 + "_" + op + "/" + model + "/datacards/" + key1 + "_" + key2 + "/shapes/")
+            for sh_idx in range(len(shapes_2)):
+                os.system("cp {} {}".format(shapes_2[sh_idx], args.out + "/" + outprefix + key1 + "_" + key2 + "_" + op + "/" + model + "/datacards/" + key1 + "_" + key2 + "/shapes/")
 
-            on = args.do 
-
+            var_fol_name.append("{}_{}".format(wc[0], wc[1])) 
+            
             os.chdir(cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]))
 
             os.system("combineCards.py datacard_{}.txt datacard_{}.txt > datacard_{}".format(key1, key2, key3))
+            
+            os.chdir(global_path)
 
         makeExecRunt(model, var_fol_name, [op], cp, key1 + "_" + key2)
         makeExecRunc(var_fol_name, [op], cp, key1 + "_" + key2)
