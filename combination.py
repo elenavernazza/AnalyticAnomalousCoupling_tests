@@ -266,7 +266,7 @@ for op in tqdm(commonops):
 
             mkdir(cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]))
             os.system("cp {} {}/datacard_{}.txt".format(path_1_dat, cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]), key3))
-            os.system("cp {} {}/datacard_{}.txt".format(path_2_dat, cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]), key3)
+            os.system("cp {} {}/datacard_{}.txt".format(path_2_dat, cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]), key3))
 
             var_fol_name.append("{}_{}".format(wc[0], wc[1]))
 
