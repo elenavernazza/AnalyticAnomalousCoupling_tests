@@ -291,7 +291,7 @@ for op in tqdm(commonops):
             
             os.chdir(global_path)
 
-        makeExecRunt(model, var_fol_name, [op], cp, key1 + "_" + key2, "datacard{}.txt".format(key3))
+        makeExecRunt(model, var_fol_name, [op], cp, key1 + "_" + key2, "datacard{}".format(key3))
         makeExecRunc(var_fol_name, [op], cp, key1 + "_" + key2)
 
 
