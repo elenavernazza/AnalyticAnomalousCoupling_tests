@@ -215,8 +215,8 @@ for fol, prefix, k, tag in tqdm(zip(processes, prefixes, keys, tags)):
                 if v not in variables[k]:
                     variables[k].append(v)
                 all_dict[k][op][model][v] = {}
-                all_dict[k][op][model][v]['datacard'] = glob(var + "/{}.txt".format(tag))
-                all_dict[fol][op][model][v]['shapes'] = glob(var + "/shapes/*.root")
+                all_dict[k][op][model][v]['datacard'] = glob(var + "/{}.txt".format(tag))[0]
+                all_dict[k][op][model][v]['shapes'] = glob(var + "/shapes/*.root")
 
 print(" @ @ @ Making vars combo @ @ @")
 
@@ -254,8 +254,6 @@ for op in tqdm(commonops):
         mkdir(cp)
         cp = args.out + "/" + outprefix + key1 + "_" + key2 + "_" + op + "/" + model + "/datacards/" + key1 + "_" + key2
         mkdir(cp)
-        cp = args.out + "/" + outprefix + key1 + "_" + key2 + "_" + op + "/" + model + "/datacards/" + key1 + "_" + key2 + "/shapes/"
-        mkdir(cp)
 
         var_fol_name = []
         for wc in var_comb:
@@ -267,19 +265,20 @@ for op in tqdm(commonops):
 
             path_1_dat = os.path.abspath(path_1_dat)
             path_2_dat = os.path.abspath(path_2_dat)
-            shapes_1 = os.path.abspath(shapes_1) 
-            shapes_2 = os.path.abspath(shapes_2) 
+            shapes_1 = [os.path.abspath(i) for i in shapes_1]
+            shapes_2 = [os.path.abspath(i) for i in  shapes_2]
 
             cp = args.out + "/" + outprefix + key1 + "_" + key2 + "_" + op + "/" + model
             
             mkdir(cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]))
+            mkdir(cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}/shapes/".format(wc[0], wc[1]))
             os.system("cp {} {}/datacard_{}.txt".format(path_1_dat, cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]), key1))
             os.system("cp {} {}/datacard_{}.txt".format(path_2_dat, cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]), key2))
 
             for sh_idx in range(len(shapes_1)):
-                os.system("cp {} {}".format(shapes_1[sh_idx], args.out + "/" + outprefix + key1 + "_" + key2 + "_" + op + "/" + model + "/datacards/" + key1 + "_" + key2 + "/shapes/")
+                os.system("cp {} {}".format(shapes_1[sh_idx], cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}/shapes/".format(wc[0], wc[1])))
             for sh_idx in range(len(shapes_2)):
-                os.system("cp {} {}".format(shapes_2[sh_idx], args.out + "/" + outprefix + key1 + "_" + key2 + "_" + op + "/" + model + "/datacards/" + key1 + "_" + key2 + "/shapes/")
+                os.system("cp {} {}".format(shapes_2[sh_idx], cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}/shapes/".format(wc[0], wc[1])))
 
             var_fol_name.append("{}_{}".format(wc[0], wc[1])) 
             
