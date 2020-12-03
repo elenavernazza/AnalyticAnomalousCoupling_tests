@@ -47,6 +47,7 @@ parser.add_argument('--ops',     dest='ops',     help='comma separated list of o
 parser.add_argument('--labels',     dest='labels',     help='comma separated list of axis labels. If 1d then only one, if 2d 2', required = False, default="c1,c2")
 parser.add_argument('--outFolder',     dest='outFolder',     help='outfolder in which to store plots',    default = ".")
 parser.add_argument('--outFile',     dest='outFile',     help='name of the out file',    default = "ll.png")
+parser.add_argument('--NLL',     dest='NLL',     help='NLL limit to draw default 100 , -30',    default = "100,-30")
 
 args = parser.parse_args()
 
@@ -62,7 +63,7 @@ leg = args.leg.split(",")
 
 #PLOTTING HELPER
 cpm = PM.CombinePlotManager()
-cpm.NLL_lims = [100, -30]
+cpm.NLL_lims = [args.NLL.split(",")[0], args.NLL.split(",")[1]]
 cpm.setGradient()
 cpm.lumi = args.lumi
 if convertName(args.legtit) != None:
@@ -76,7 +77,7 @@ if is2D:
 mkdir(args.outFolder)
 
 
-colors = [ROOT.kMagenta, ROOT.kBlue, ROOT.kBlack, ROOT.kGreen, ROOT.kOrange, ROOT.kPink]
+colors = [ROOT.Red, ROOT.kBlue, ROOT.kGreen, ROOT.kOrange, ROOT.kPink]
 markerstyles = [20, 21, 22, 23, 24, 25, 26, 27]
 
 
@@ -196,14 +197,3 @@ else:
 
     cpm.saveName = args.outFolder + "/" + args.outFile
     cpm.plot1D(save=True)
-
-
-
-
-
-
-
-
-
-
-

@@ -188,9 +188,12 @@ class CombinePlotManager:
         
         #graphScan.SetMaximum(ymax)
 
-        x_min = x_[0] - abs(0.2*x_[0])
-        x_max = x_[1] + abs(0.2*x_[1])
+        #x_min = x_[0] - abs(0.2*x_[0])
+        #x_max = x_[1] + abs(0.2*x_[1])
         #graphScan.GetXaxis().SetRangeUser(x_min, x_max)
+
+        x_min = graphScan.GetXaxis().GetXmin(),
+        x_max = graphScan.GetXaxis().GetXmax ()
         
         #one and two sigma levels
 
