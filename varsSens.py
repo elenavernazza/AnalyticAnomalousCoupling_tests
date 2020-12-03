@@ -67,7 +67,13 @@ def convertName(name):
         " ": None
     }
 
-    return d[name]
+    if "_" in name:
+        name = name.split("_")
+        l = [convertName(i) for i in name]
+        return ":".join(i for i in l)
+
+    else:
+        return d[name]
 
 def mkdir(path):
     try:
@@ -85,11 +91,18 @@ if __name__ == "__main__":
     parser.add_argument('--ignore',     dest='ignore',     help='comma sep list of ignore variables', required = False, default="")
     parser.add_argument('--maxNLL',     dest='maxNLL',     help='NLL maximum sets precision of computation of intervals', required = False, default="100")
     parser.add_argument('--models',     dest='models',     help='Comma separated list of models: EFT,EFTNeg,EFTNeg-alt', required = False, default="EFT,EFTNeg,EFTNeg-alt")
+    parser.add_argument('--prefix',     dest='prefix',     help='prefix of the subfolders, prefix_op', required = False, default="to_Latinos_")
+    parser.add_argument('--saveLL',     dest='saveLL',     help='Save likelihood plots or not, default is true', required = False, default=True, action = "store_false")
+    parser.add_argument('--drawText',     dest='drawText',     help='Plot text of best variables in final plot', required = False, default=True, action = "store_false")
+    parser.add_argument('--graphLimits',     dest='graphLimits',     help='comma separated list of final graph y axis limits, default is -2,2', required = False, default="-2,2")
 
     args = parser.parse_args()
 
     ignore = args.ignore.split(",")
     mod = args.models.split(",")
+
+    final_plot_y_min = args.graphLimits.split(",")[0]
+    final_plot_y_max = args.graphLimits.split(",")[1]
 
     ops = []
     limits = {}
@@ -116,9 +129,14 @@ if __name__ == "__main__":
     for dir in glob(args.baseFolder + "/*/"):
 
         process = dir.split("/")[-2]
-        process = process.split("to_Latinos_")[1]
-        op = process.split("_")[1]
+        process = process.split(args.prefix + "_")[1]
+        op = process.split("_")[-1]
         ops.append(op)
+        process = process.split("_" + op)[0]
+
+        print("\n\n")
+        print(op)
+        print("\n\n")
 
         mkdir(outputFolder + "/" + op)
         for model in mod:
@@ -132,7 +150,8 @@ if __name__ == "__main__":
             x_counter = 0.5
 
             mkdir(outputFolder + "/" + op + "/" + model)
-            mkdir(outputFolder + "/" + op + "/" + model + "/LLscans")
+            if args.saveLL: mkdir(outputFolder + "/" + op + "/" + model + "/LLscans")
+
 
             for j,vars_ in enumerate(glob(dir + "/" + model + "/datacards/" + process + "/*/")) :
 
@@ -171,10 +190,12 @@ if __name__ == "__main__":
                 graphScan.SetLineColor(ROOT.kRed)
                 graphScan.SetLineWidth(2)
 
-                cs = ROOT.TCanvas("c_" + op + "_" + viara, "cs", 800, 800)
-                graphScan.Draw("AL")
-                cs.Draw()
-                cs.Print(outputFolder + "/" + op + "/" + model + "/LLscans/" + op + "_" + viara + ".png")
+                if args.saveLL:
+
+                    cs = ROOT.TCanvas("c_" + op + "_" + viara, "cs", 800, 800)
+                    graphScan.Draw("AL")
+                    cs.Draw()
+                    cs.Print(outputFolder + "/" + op + "/" + model + "/LLscans/" + op + "_" + viara + ".png")
 
 
                 print("68 for {}".format(vars_))
@@ -402,8 +423,7 @@ if __name__ == "__main__":
 
         ROOT.gStyle.SetLabelSize(.05, "XY")
 
-        #h.GetYaxis().SetRangeUser(1.2*min_,1.3 + max_)
-        h.GetYaxis().SetRangeUser(-7,7)
+        h.GetYaxis().SetRangeUser(final_plot_y_min,final_plot_y_max)
         g1.SetHistogram(h)
 
 
@@ -423,17 +443,18 @@ if __name__ == "__main__":
         for item in cpm.optionals:
             item.Draw("same")
 
-
-        count = 0
-        for x,y in zip(xs, two_sup):
-            y_ = y + 0.5
-            if y_ > 6.9: continue
-            var = vars_[count]
-            count += 1
-            latex = ROOT.TLatex()
-            latex.SetTextSize(0.025)
-            latex.SetTextAlign(12)
-            latex.DrawLatex(x-0.14 - 0.02*len(convertName(var)),y_,"{}".format(convertName(var)))
+        if args.drawText:
+            count = 0
+            for x,y in zip(xs, two_sup):
+                y_ = y + 0.5
+                #do not plot if the text pass the plot boundaries
+                if y_ > final_plot_y_max - 0.1: continue
+                var = vars_[count]
+                count += 1
+                latex = ROOT.TLatex()
+                latex.SetTextSize(0.025)
+                latex.SetTextAlign(12)
+                latex.DrawLatex(x-0.14 - 0.02*len(convertName(var)),y_,"{}".format(convertName(var)))
 
 
         c.Draw()
