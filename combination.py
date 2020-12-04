@@ -187,6 +187,7 @@ ig_op = args.ig_op.split(',')
 ig_var = args.ig_var.split(',')
 keys = args.keys.split(',')
 tags = args.inputDtag.split(',')
+
 do_only = args.do_only.split(',')
 
 if len(processes) != 2: sys.exit("AAAAH you can't do that yet... you greedy man")
@@ -200,13 +201,14 @@ print(" @ @ @ Retrieving shapes and datacards @ @ @")
 for fol, prefix, k, tag in tqdm(zip(processes, prefixes, keys, tags)):
     subf = glob(fol + "/" + prefix + "*/")
     all_dict[k] = {}
-    variables[k] = []
+    variables[k] = {}
 
     for s in subf:
         op = (s.split("/")[-2]).split("_")[-1]
         if op in ig_op: continue
         proc = (s.split("/")[-2]).split("_")[-2]
         all_dict[k][op] = {}
+        variables[k][op] = []
 
         for model in models:
             all_dict[k][op][model] = {}
@@ -215,8 +217,8 @@ for fol, prefix, k, tag in tqdm(zip(processes, prefixes, keys, tags)):
                 v = var.split("/")[-1]
                 if any(i in v.split("_") for i in ig_var): continue
                 if do_only[0] != "all" and var not in do_only: continue
-                if v not in variables[k]:
-                    variables[k].append(v)
+                if v not in variables[k][op]:
+                    variables[k][op].append(v)
                 all_dict[k][op][model][v] = {}
                 all_dict[k][op][model][v]['datacard'] = glob(var + "/{}.txt".format(tag))[0]
                 all_dict[k][op][model][v]['shapes'] = glob(var + "/shapes/*.root")
@@ -239,16 +241,16 @@ ops2 = np.array(sp.keys())
 mask = np.isin(ops1, ops2)
 commonops = ops1[mask]
 
-v1 = variables[variables.keys()[0]] #first process with its ops
-v2 = variables[variables.keys()[1]] #second process with its ops
-
-var_comb = list(itertools.product(v1,v2)) # [(1st p var, 2nd p var), ... ]
-
 for op in tqdm(commonops):
     cp = args.out + "/" + outprefix + key1 + "_" + key2 + "_" + op
     mkdir(cp)
 
     makeActivations(args.out, models, outprefix + key1 + "_" + key2 + "_")
+
+    v1 = variables[key1][op] #first process with its ops
+    v2 = variables[key2][op] #second process with its ops
+
+    var_comb = list(itertools.product(v1,v2)) # [(1st p var, 2nd p var), ... ]
 
     for model in models:
         cp = args.out + "/" + outprefix + key1 + "_" + key2 + "_" + op + "/" + model
