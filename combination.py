@@ -171,6 +171,7 @@ parser.add_argument('--models',     dest='models',     help='comma separated lis
 parser.add_argument('--do',     dest='do',     help='name .txt of the datacards coimbined', required = False, default="")
 parser.add_argument('--ig_op',     dest='ig_op',     help='comma separated list of operators you want to ignore', required = False, default = "")
 parser.add_argument('--ig_var',     dest='ig_var',     help='comma separated list of variables you want to ignore', required = False, default = "")
+parser.add_argument('--do_only',     dest='do_only',     help='comma separated list of variables you want to process', required = False, default = "all")
 parser.add_argument('--out',     dest='out',     help='output folder name', required = False, default="combination_results")
 parser.add_argument('--outPrefix',     dest='outPrefix',     help='output prefix name, default = none', required = False, default="")
 parser.add_argument('--inputDtag',     dest='inputDtag',     help='Name of process - wise datacards, all datacard must have the same name for each process. No .txt as final', required = False, default="*,*")
@@ -186,6 +187,7 @@ ig_op = args.ig_op.split(',')
 ig_var = args.ig_var.split(',')
 keys = args.keys.split(',')
 tags = args.inputDtag.split(',')
+do_only = args.do_only.split(',')
 
 if len(processes) != 2: sys.exit("AAAAH you can't do that yet... you greedy man")
 
@@ -212,6 +214,7 @@ for fol, prefix, k, tag in tqdm(zip(processes, prefixes, keys, tags)):
             for var in glob(s + "/" + model + "/datacards/*/*"):
                 v = var.split("/")[-1]
                 if any(i in v.split("_") for i in ig_var): continue
+                if do_only[0] != "all" and var not in do_only: continue
                 if v not in variables[k]:
                     variables[k].append(v)
                 all_dict[k][op][model][v] = {}
@@ -285,8 +288,6 @@ for op in tqdm(commonops):
             os.chdir(cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]))
 
             os.system("combineCards.py {}=datacard_{}.txt {}=datacard_{}.txt > datacard{}.txt".format(key1, key1, key2, key2, key3))
-            os.system("ls")
-            print("rm datacard_{}.txt datacard_{}.txt".format(key1, key2))
             os.system("rm datacard_{}.txt datacard_{}.txt".format(key1, key2))
             
             os.chdir(global_path)
