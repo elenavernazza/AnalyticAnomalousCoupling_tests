@@ -211,7 +211,7 @@ for fol, prefix, k, tag in tqdm(zip(processes, prefixes, keys, tags)):
 
             for var in glob(s + "/" + model + "/datacards/*/*"):
                 v = var.split("/")[-1]
-                if v in ig_var: continue
+                if any(i in v.split("_") for i in ig_var): continue
                 if v not in variables[k]:
                     variables[k].append(v)
                 all_dict[k][op][model][v] = {}
@@ -284,9 +284,9 @@ for op in tqdm(commonops):
             
             os.chdir(cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]))
 
-            os.system("combineCards.py {}=datacard_{}.txt {}=datacard_{}.txt > datacard{}.txt".format(key1, key1 key2, key2 key3))
+            os.system("combineCards.py {}=datacard_{}.txt {}=datacard_{}.txt > datacard{}.txt".format(key1, key1, key2, key2, key3))
             os.system("ls")
-            print("rm datacard_{}.txt, datacard_{}.txt".format(key1, key2))
+            print("rm datacard_{}.txt datacard_{}.txt".format(key1, key2))
             os.system("rm datacard_{}.txt datacard_{}.txt".format(key1, key2))
             
             os.chdir(global_path)
