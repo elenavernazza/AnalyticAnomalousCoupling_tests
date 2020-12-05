@@ -125,6 +125,22 @@ def makeExecRunt(model, variables, ops, outdir,proc, tag):
     os.chmod(file_name, st.st_mode | stat.S_IEXEC)
 
 
+def combineCards(key1, write1, key2, write2, key3):
+    t = "combineCards.py"
+    if write1 == "True":
+        t += " {}=datacard_{}.txt".format(key1, key1)
+    else:
+        t += " datacard_{}.txt".format(key1)
+
+    if write2 == "True":
+        t += " {}=datacard_{}.txt".format(key2, key2)
+    else:
+        t += " datacard_{}.txt".format(key2)
+
+    t += " > datacard{}.txt".format(key3)
+
+    return t
+
 
 def makeExecRunc(variables, ops, outdir, proc ):
     #creates an executable to fit binary workspaces after running mkDatacards.py
@@ -175,6 +191,7 @@ parser.add_argument('--do_only',     dest='do_only',     help='comma separated l
 parser.add_argument('--out',     dest='out',     help='output folder name', required = False, default="combination_results")
 parser.add_argument('--outPrefix',     dest='outPrefix',     help='output prefix name, default = none', required = False, default="")
 parser.add_argument('--inputDtag',     dest='inputDtag',     help='Name of process - wise datacards, all datacard must have the same name for each process. No .txt as final', required = False, default="*,*")
+parser.add_argument('--key2combine',     dest='key2combine',     help='Input to tell combine the process name in the datacard combination (combineCards.py key=datacard.txt ... or simply datacard.txt if False). Pairwise with the keys fiels default is False,False', required = False, default="False,False")
 
 args = parser.parse_args()
 
@@ -187,6 +204,7 @@ ig_op = args.ig_op.split(',')
 ig_var = args.ig_var.split(',')
 keys = args.keys.split(',')
 tags = args.inputDtag.split(',')
+k2c = args.key2combine.split(',')
 
 do_only = args.do_only.split(',')
 
@@ -198,9 +216,10 @@ variables = {}
 
 print(" @ @ @ Retrieving shapes and datacards @ @ @")
 
-for fol, prefix, k, tag in tqdm(zip(processes, prefixes, keys, tags)):
+for fol, prefix, k, tag, k2c_ in tqdm(zip(processes, prefixes, keys, tags, k2c)):
     subf = glob(fol + "/" + prefix + "*/")
     all_dict[k] = {}
+    all_dict[k]["AddKey"] = k2c_
     variables[k] = {}
 
     for s in subf:
@@ -288,8 +307,9 @@ for op in tqdm(commonops):
             var_fol_name.append("{}_{}".format(wc[0], wc[1])) 
             
             os.chdir(cp + "/datacards/" + key1 + "_" + key2 + "/{}_{}".format(wc[0], wc[1]))
-
-            os.system("combineCards.py {}=datacard_{}.txt {}=datacard_{}.txt > datacard{}.txt".format(key1, key1, key2, key2, key3))
+            combine_text = combineCards(key1, all_dict[key1]["AddKey"], key2, all_dict[key2]["AddKey"], key3)
+            os.system(combine_text)
+            #os.system("combineCards.py {}=datacard_{}.txt {}=datacard_{}.txt > datacard{}.txt".format(key1, key1, key2, key2, key3))
             os.system("rm datacard_{}.txt datacard_{}.txt".format(key1, key2))
             
             os.chdir(global_path)
