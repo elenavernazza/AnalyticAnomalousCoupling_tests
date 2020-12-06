@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
         process = dir.split("/")[-2]
         process = process.split(args.prefix + "_")[1]
-        op = [process.split("_")[-1], process.split("_")[-1]] 
+        op = [process.split("_")[-1], process.split("_")[-2]] 
         ops.append(op)
         process = process.split("_" + op[0] + "_" + op[1])[0]
 
@@ -141,7 +141,7 @@ if __name__ == "__main__":
                 t = f.Get("limit")
                 
                 print("@Retrieving likelihood...")
-                to_draw = ROOT.TString("{}:{}:2*deltaNLL:".format("k_" + op[0], "k_" + op[1]))
+                to_draw = ROOT.TString("{}:{}:2*deltaNLL".format("k_" + op[0], "k_" + op[1]))
                 n = t.Draw( to_draw.Data() , "deltaNLL<{} && deltaNLL>{}".format(float(args.maxNLL),-30), "l")
 
                 if n <= 1: 
@@ -150,9 +150,9 @@ if __name__ == "__main__":
                     continue
 
                 
-                x = np.ndarray((n), 'd', limit.GetV1())
-                y = np.ndarray((n), 'd', limit.GetV2())
-                z_ = np.ndarray((n), 'd', limit.GetV3())
+                x = np.ndarray((n), 'd', t.GetV1())
+                y = np.ndarray((n), 'd', t.GetV2())
+                z_ = np.ndarray((n), 'd', t.GetV3())
 
                 z = np.array([i-min(z_) for i in z_]) #shifting likelihood toward 0
                 graphScan = ROOT.TGraph2D(n,x,y,z)
@@ -170,37 +170,44 @@ if __name__ == "__main__":
                 graphScan.GetHistogram().GetZaxis().SetRangeUser(0, float(args.maxNLL))
 
                 for i in range(graphScan.GetHistogram().GetSize()):
-                    bin_vals.append(graphScan.GetHistogram().GetBinContent(i+1))
                     if (graphScan.GetHistogram().GetBinContent(i+1) == 0):
                         graphScan.GetHistogram().SetBinContent(i+1, 100)
 
                 hist = graphScan.GetHistogram().Clone("arb_hist")
                 hist.SetContour(2, np.array([2.30, 5.99]))
+                hist.Draw("CONT Z LIST")
+                ROOT.gPad.Update()
 
-                for i, event in enumerate(limit):
+                for i, event in enumerate(t):
                     if i == 0:
-                        x_min = getattr(event, op[0])
-                        y_min = getattr(event, op[1])
+                        x_min = getattr(event, "k_" + op[0])
+                        y_min = getattr(event, "k_" + op[1])
 
                     else: break
 
                 if args.saveLL:
                     
-                    cs = ROOT.TCanvas("c_" + op + "_" + viara, "cs", 800, 800)
+                    cs = ROOT.TCanvas("c_" + op[0] + "_" + op[1] + "_" + viara, "cs", 800, 800)
                     exp = ROOT.TGraph()
                     exp.SetPoint(0, x_min, y_min)
                     conts = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
                     cont_graphs = [conts.At(i).First() for i in range(2)]
                     colors = [ROOT.kRed, ROOT.kBlue]
                     linestyle = [1, 9]
-                    hist.Draw("colz")
+                    graphScan.GetHistogram().Draw("colz")
                     for i, item in enumerate(cont_graphs):
-                        item.SetLineColor(colors[i])
-                        item.GetXaxis().SetTitle(op[0])
-                        item.GetYaxis().SetTitle(op[1])
-                        item.SetLineStyle(linestyle[i])
-                        item.SetLineWidth(2)
-                        item.Draw("PC")
+                        try:
+                            item.SetLineColor(colors[i])
+                            item.GetXaxis().SetTitle(op[0])
+                            item.GetYaxis().SetTitle(op[1])
+                            item.SetLineStyle(linestyle[i])
+                            item.SetLineWidth(2)
+                            item.Draw("PC same")
+                        except:
+                            continue
+
+                    exp.SetMarkerStyle(34)
+                    exp.Draw("P same")
 
                     cs.Draw()
                     cs.Print(outputFolder + "/" + op[0] + "_" + op[1] + "/" + model + "/LLscans/" + op[0] + "_" + op[1] + "_" + viara + ".png")
@@ -212,10 +219,10 @@ if __name__ == "__main__":
                 x_nintyfive = getAreaWithinCL(hist, 5.99)
 
                 
-                one_inf.append(abs(x_sixeight[0]))
-                one_sup.append(abs(x_sixeight[1]))
-                two_inf.append(abs(x_nintyfive[0]))
-                two_sup.append(abs(x_nintyfive[1]))
+                one_s.append(abs(x_sixeight/2))
+                one_sup.append(abs(x_sixeight/2))
+                two_inf.append(abs(x_nintyfive/2))
+                two_sup.append(abs(x_nintyfive/2))
                 best_x.append(x_counter)
                 best_y.append(0)
                 var.append(vars_.split("/")[-2])
@@ -262,7 +269,7 @@ if __name__ == "__main__":
             leg.AddEntry(g1, "#pm 1#sigma Expected", "F")
             leg.AddEntry(g2, "#pm 2#sigma Expected", "F")
             leg.AddEntry(g1, "Best Fit", "P")
-            leg.SetHeader("Operator: " + op)
+            leg.SetHeader("Operator: " + op[0] + " " + op[1])
             leg.SetBorderSize(2)
 
             h = ROOT.TH1F("h", "h", len(best_x)+2, -1, len(best_x)+1)
@@ -274,7 +281,7 @@ if __name__ == "__main__":
                 if idx == 0: h.GetXaxis().SetBinLabel(idx + 1, "")
                 if idx < len(var)+1 and idx > 0: h.GetXaxis().SetBinLabel(idx + 1, convertName(var[idx - 1]))
                 else: h.GetXaxis().SetBinLabel(idx + 1, "")
-            h.GetYaxis().SetTitle(op + " Estimate")
+            h.GetYaxis().SetTitle(op[0] + " " + op[1] " 2D Area")
 
             ROOT.gStyle.SetLabelSize(.05, "XY")
 
