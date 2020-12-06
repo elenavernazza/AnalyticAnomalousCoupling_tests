@@ -13,7 +13,7 @@ def getAreaWithinCL (histo, threshold):
   area = 0. 
   for i  in range(1, histo.GetNbinsX() + 1):
     for j  in range(1, histo.GetNbinsY () + 1):
-      if histo.GetBinContent (i,j) < threshold area+=1
+      if histo.GetBinContent (i,j) < threshold: area+=1
 
   area *= histo.GetXaxis ().GetBinWidth (1) * histo.GetYaxis ().GetBinWidth (1) 
 
@@ -104,15 +104,15 @@ if __name__ == "__main__":
 
         process = dir.split("/")[-2]
         process = process.split(args.prefix + "_")[1]
-        op = process.split("_")[-1]
-        ops.append(op.split("_"))
-        process = process.split("_" + op)[0]
+        op = [process.split("_")[-1], process.split("_")[-1]] 
+        ops.append(op)
+        process = process.split("_" + op[0] + "_" + op[1])[0]
 
         print("\n\n")
         print(op)
         print("\n\n")
 
-        mkdir(outputFolder + "/" + op)
+        mkdir(outputFolder + "/" + op[0] + "_" + op[1])
         for model in mod:
             one_inf = []
             one_sup = []
@@ -123,8 +123,8 @@ if __name__ == "__main__":
             var = []
             x_counter = 0.5
 
-            mkdir(outputFolder + "/" + op + "/" + model)
-            if args.saveLL: mkdir(outputFolder + "/" + op + "/" + model + "/LLscans")
+            mkdir(outputFolder + "/" + op[0] + "_" + op[1] + "/" + model)
+            if args.saveLL: mkdir(outputFolder + "/" + op[0] + "_" + op[1] + "/" + model + "/LLscans")
 
 
             for j,vars_ in enumerate(glob(dir + "/" + model + "/datacards/" + process + "/*/")) :
@@ -178,11 +178,11 @@ if __name__ == "__main__":
                 hist.SetContour(2, np.array([2.30, 5.99]))
 
                 for i, event in enumerate(limit):
-                if i == 0:
-                    x_min = getattr(event, op[0])
-                    y_min = getattr(event, op[1])
+                    if i == 0:
+                        x_min = getattr(event, op[0])
+                        y_min = getattr(event, op[1])
 
-                else: break
+                    else: break
 
                 if args.saveLL:
                     
@@ -203,7 +203,7 @@ if __name__ == "__main__":
                         item.Draw("PC")
 
                     cs.Draw()
-                    cs.Print(outputFolder + "/" + op + "/" + model + "/LLscans/" + op + "_" + viara + ".png")
+                    cs.Print(outputFolder + "/" + op[0] + "_" + op[1] + "/" + model + "/LLscans/" + op[0] + "_" + op[1] + "_" + viara + ".png")
 
 
                 print("68 for {}".format(vars_))
@@ -331,7 +331,7 @@ if __name__ == "__main__":
                 item.Draw("same")
 
             c.Draw()
-            c.Print(outputFolder + "/" + op + "/" + model + "/sensitivity_" + op + ".png")
+            c.Print(outputFolder + "/" + op[0] + "_" + op[1] + "/" + model + "/sensitivity_" + op[0] + "_" + op[1] + ".png")
     
     #open txt file to store results
     f_out = open(outputFolder + "/results.txt", "w")
