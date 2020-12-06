@@ -47,10 +47,10 @@ def makeActivations(outdir, models, prefix):
     f.write('      process = dir.split("/")[-2]\n')
     f.write('      op = process.split("{}")[1]\n'.format(prefix))
     f.write('      process = process.split(op)[0]\n')
-    f.write('      for model in [{}]:\n'.format(",".join("\"{}\"".format(i) for i in models)))
-    f.write('         print("[INFO] Running for op: {}, model: {}".format(op, model))\n')
-    f.write('         os.chdir(dir + "/" + model)\n')
-    f.write('         os.system("bash t2w.sh")\n')
+    f.write('      #for model in [{}]:\n'.format(",".join("\"{}\"".format(i) for i in models)))
+    f.write('      #print("[INFO] Running for op: {}, model: {}".format(op, model))\n')
+    f.write('      os.chdir(dir)\n')
+    f.write('      os.system("bash t2w.sh")\n')
 
     f.close()
     #convert to executable
@@ -77,10 +77,10 @@ def makeActivations(outdir, models, prefix):
     f.write('      process = dir.split("/")[-2]\n')
     f.write('      op = process.split("{}")[1]\n'.format(prefix))
     f.write('      process = process.split(op)[0]\n')
-    f.write('      for model in [{}]:\n'.format(",".join("\"{}\"".format(i) for i in models)))
-    f.write('         print("[INFO] Running for op: {}, model: {}".format(op, model))\n')
-    f.write('         os.chdir(dir + "/" + model)\n')
-    f.write('         os.system("bash fit.sh")\n')
+    f.write('      #for model in [{}]:\n'.format(",".join("\"{}\"".format(i) for i in models)))
+    f.write('         #print("[INFO] Running for op: {}, model: {}".format(op, model))\n')
+    f.write('      os.chdir(dir )\n')
+    f.write('      os.system("bash fit.sh")\n')
 
     f.close()
     #convert to executable
@@ -117,7 +117,7 @@ def makeExecRunt(model, variables, ops, outdir, tag):
         
         to_w += "\n"
         f.write(to_w)
-        f.write("cd ../../..\n\n\n")
+        f.write("cd ../..\n\n\n")
 
     f.close()
     #convert to executable
@@ -262,7 +262,7 @@ if __name__ == "__main__":
                 mkdir(cp + "/" + var_name + "/shapes/")
 
 
-                for process_, v in zip(processes, wc):
+                for process_, v in zip(vars_.keys(), wc):
                     os.system("cp {} {}/datacard_{}.txt".format(os.path.abspath(all_dict[process_][op][model][v]['datacard']), cp + "/" + var_name, process_))
                     os.system("cp {} {}".format(os.path.abspath(all_dict[process_][op][model][v]['shapes']), cp + "/" + var_name + "/shapes/"))
 
