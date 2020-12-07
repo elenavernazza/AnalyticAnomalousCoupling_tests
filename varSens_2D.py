@@ -90,6 +90,15 @@ if __name__ == "__main__":
     mkdir(outputFolder)
 
     best = {}
+
+    __stops = array('d', [0.00, 1.00])
+    __red = array('d', [1.0, 0.0])
+    __green  = array('d', [1.0, 0.0])
+    __blue  = array('d', [1.0, 1.00])
+
+    #ROOT.TColor.CreateGradientColorTable(3, __stops, __red, __green, __blue, 255)
+    ROOT.TColor.CreateGradientColorTable(2, __stops,__red, __green, __blue, 50, 0.8)
+    ROOT.gStyle.SetNumberContours(200)
     
     for model in mod:
         best[model] = {}
@@ -188,13 +197,34 @@ if __name__ == "__main__":
                 if args.saveLL:
                     
                     cs = ROOT.TCanvas("c_" + op[0] + "_" + op[1] + "_" + viara, "cs", 800, 800)
+                    margins = 0.11
+
+                    ROOT.gPad.SetRightMargin(margins)
+                    ROOT.gPad.SetLeftMargin(margins)
+                    ROOT.gPad.SetBottomMargin(margins)
+                    ROOT.gPad.SetTopMargin(margins)
+                    ROOT.gPad.SetFrameLineWidth(3)
+
                     exp = ROOT.TGraph()
                     exp.SetPoint(0, x_min, y_min)
+                    exp.SetMarkerStyle(34)
+                    exp.SetMarkerSize(2)
+
                     conts = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
                     cont_graphs = [conts.At(i).First() for i in range(2)]
-                    colors = [ROOT.kRed, ROOT.kBlue]
-                    linestyle = [1, 9]
+                    colors = [ROOT.kRed, ROOT.kRed]
+                    linestyle = [1, 2]
+
                     graphScan.GetHistogram().Draw("colz")
+                    graphScan.GetHistogram().GetXaxis().SetTitle(op[0])
+                    graphScan.GetHistogram().GetYaxis().SetTitle(op[1])
+                    graphScan.GetHistogram().GetZaxis().SetTitle("-2#Delta LL")
+                    c.Modified()
+                    c.Update()
+
+                    leg = ROOT.TLegend(0.85, 0.85, 0.7, 0.7)
+                    leg.AddEntry(exp, "Best Fit")
+
                     for i, item in enumerate(cont_graphs):
                         try:
                             item.SetLineColor(colors[i])
@@ -202,12 +232,16 @@ if __name__ == "__main__":
                             item.GetYaxis().SetTitle(op[1])
                             item.SetLineStyle(linestyle[i])
                             item.SetLineWidth(2)
-                            item.Draw("PC same")
+                            item.Draw("L same")
+                            leg.AddEntry(item, "#pm {}#sigma".format(i+1))
                         except:
                             continue
 
-                    exp.SetMarkerStyle(34)
                     exp.Draw("P same")
+                    leg.Draw()
+
+                    for item in cpm.optionals:
+                        item.Draw("same")
 
                     cs.Draw()
                     cs.Print(outputFolder + "/" + op[0] + "_" + op[1] + "/" + model + "/LLscans/" + op[0] + "_" + op[1] + "_" + viara + ".png")
@@ -303,7 +337,7 @@ if __name__ == "__main__":
                     best_index = count
                 count += 1
 
-            best[model]["ops"].append(op)
+            best[model]["ops"].append(op[0] + " " + op[1])
             best[model]["best_var"].append(var[best_index])
             best[model]["one_s"].append([one_inf[best_index], one_sup[best_index]])
             best[model]["two_s"].append([two_inf[best_index], two_sup[best_index]])
@@ -360,6 +394,8 @@ if __name__ == "__main__":
         one_s = best[model]["one_s"]
         two_s = best[model]["two_s"]
         best_fit = best[model]["best"]
+
+        print(two_s, one_s, ops, best_fit, vars_)
 
         two_s, one_s, ops, best_fit, vars_ = zip(*sorted(zip(two_s, one_s, ops, best_fit, vars_)))
 
@@ -428,7 +464,7 @@ if __name__ == "__main__":
         h.SetStats(0)
         for idx in  range(h.GetNbinsX()):
             if idx == 0: h.GetXaxis().SetBinLabel(idx + 1, "")
-            if idx < len(ops)+1 and idx > 0: h.GetXaxis().SetBinLabel(idx + 1, " ".join(i for i in ops[idx-1]))
+            if idx < len(ops)+1 and idx > 0: h.GetXaxis().SetBinLabel(idx + 1, ops[idx-1])
             else: h.GetXaxis().SetBinLabel(idx + 1, "")
         h.GetYaxis().SetTitle("Best Confidence Interval")
 
