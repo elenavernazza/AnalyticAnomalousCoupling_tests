@@ -281,7 +281,7 @@ if __name__ == "__main__":
                 if idx == 0: h.GetXaxis().SetBinLabel(idx + 1, "")
                 if idx < len(var)+1 and idx > 0: h.GetXaxis().SetBinLabel(idx + 1, convertName(var[idx - 1]))
                 else: h.GetXaxis().SetBinLabel(idx + 1, "")
-            h.GetYaxis().SetTitle(op[0] + " " + op[1] " 2D Area")
+            h.GetYaxis().SetTitle(op[0] + " " + op[1] + " 2D Area")
 
             ROOT.gStyle.SetLabelSize(.05, "XY")
 
