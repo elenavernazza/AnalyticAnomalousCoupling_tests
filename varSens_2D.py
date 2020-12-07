@@ -219,7 +219,7 @@ if __name__ == "__main__":
                 x_nintyfive = getAreaWithinCL(hist, 5.99)
 
                 
-                one_s.append(abs(x_sixeight/2))
+                one_inf.append(abs(x_sixeight/2))
                 one_sup.append(abs(x_sixeight/2))
                 two_inf.append(abs(x_nintyfive/2))
                 two_sup.append(abs(x_nintyfive/2))
