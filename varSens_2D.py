@@ -75,8 +75,8 @@ if __name__ == "__main__":
     ignore = args.ignore.split(",")
     mod = args.models.split(",")
 
-    final_plot_y_min = args.graphLimits.split(",")[0]
-    final_plot_y_max = args.graphLimits.split(",")[1]
+    final_plot_y_min = float(args.graphLimits.split(",")[0])
+    final_plot_y_max = float(args.graphLimits.split(",")[1])
 
     ops = []
     limits = {}
@@ -428,7 +428,7 @@ if __name__ == "__main__":
         h.SetStats(0)
         for idx in  range(h.GetNbinsX()):
             if idx == 0: h.GetXaxis().SetBinLabel(idx + 1, "")
-            if idx < len(ops)+1 and idx > 0: h.GetXaxis().SetBinLabel(idx + 1, ops[idx-1])
+            if idx < len(ops)+1 and idx > 0: h.GetXaxis().SetBinLabel(idx + 1, " ".join(i for i in ops[idx-1]))
             else: h.GetXaxis().SetBinLabel(idx + 1, "")
         h.GetYaxis().SetTitle("Best Confidence Interval")
 
