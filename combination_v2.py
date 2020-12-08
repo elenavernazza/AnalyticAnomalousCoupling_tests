@@ -7,6 +7,24 @@ from glob import glob
 from tqdm import tqdm
 import stat
 
+opr = {
+    'cHDD':[-20,20],
+    'cHWB':[-20,20], 
+    'cHW':[-30,30], 
+    'cHbox':[-20,20], 
+    'cHl1':[-50,50], 
+    'cHl3':[-30,30], 
+    'cHq1':[-30,30], 
+    'cHq3':[-30,30], 
+    'cW':[-30,30], 
+    'cll1':[-30,30], 
+    'cll':[-70,70], 
+    'cqq11':[-30,30], 
+    'cqq1':[-30,30], 
+    'cqq31':[-30,30], 
+    'cqq3':[-30,30]
+}
+
 
 def makeActivations(outdir, models, prefix):
     
@@ -208,16 +226,10 @@ if __name__ == "__main__":
     #find common operators
     processes = combinations.keys()
     common_ops = []
-    vars_ = dict.fromkeys(processes)
+    
     for i,op in enumerate(variables.keys()):
         proc = variables[op].keys()
-        if all(i in proc for i in processes): common_ops.append(op)
-
-        for p in proc:
-            if p in variables[op].keys():
-                vars_[p] = variables[op][p]
-
-    var_comb = list(itertools.product(*(vars_.values())))   
+        if all(i in proc for i in processes): common_ops.append(op) 
 
     print(" @ @ @ Making vars combo @ @ @")
 
@@ -234,12 +246,14 @@ if __name__ == "__main__":
         mkdir(cp)
         makeActivations(out, models, prefix + "_" + "_".join(p for p in processes) + "_")
 
+        var_comb = list(itertools.product(*(variables[op].values())))  
+
         for model in models:
             cp = out + "/" + prefix + "_" + "_".join(p for p in processes) + "_" + op + "/" + model
             mkdir(cp)
             cp = out + "/" + prefix + "_" + "_".join(p for p in processes) + "_" + op + "/" + model + "/datacards"
             mkdir(cp)
-            cp = out + "/" + prefix + "_" + "_".join(p for p in processes) + "_" + op + "/" + model + "/datacards" + "/" + "_".join(p for p in processes) + "_" + op
+            cp = out + "/" + prefix + "_" + "_".join(p for p in processes) + "_" + op + "/" + model + "/datacards" + "/" + "_".join(p for p in processes)
             mkdir(cp)
             var_fol_name = []
 
