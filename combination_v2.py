@@ -237,6 +237,10 @@ if __name__ == "__main__":
         for model in models:
             cp = out + "/" + prefix + "_" + "_".join(p for p in processes) + "_" + op + "/" + model
             mkdir(cp)
+            cp = out + "/" + prefix + "_" + "_".join(p for p in processes) + "_" + op + "/" + model + "/datacards"
+            mkdir(cp)
+            cp = out + "/" + prefix + "_" + "_".join(p for p in processes) + "_" + op + "/" + model + "/datacards" + "/" + "_".join(p for p in processes) + "_" + op
+            mkdir(cp)
             var_fol_name = []
 
             for wc in var_comb:
