@@ -219,10 +219,10 @@ if __name__ == "__main__":
                     graphScan.GetHistogram().GetXaxis().SetTitle(op[0])
                     graphScan.GetHistogram().GetYaxis().SetTitle(op[1])
                     graphScan.GetHistogram().GetZaxis().SetTitle("-2#Delta LL")
-                    c.Modified()
-                    c.Update()
+                    cs.Modified()
+                    cs.Update()
 
-                    leg = ROOT.TLegend(0.85, 0.85, 0.7, 0.7)
+                    leg = ROOT.TLegend(0.82, 0.85, 0.67, 0.7)
                     leg.AddEntry(exp, "Best Fit")
 
                     for i, item in enumerate(cont_graphs):

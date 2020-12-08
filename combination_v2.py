@@ -7,23 +7,6 @@ from glob import glob
 from tqdm import tqdm
 import stat
 
-opr = {
-    'cW': [-2,2],
-    'cHWB': [-20,20],
-    'cHl3' : [-1,1],
-    'cHq1':[-2,2],
-    'cHq3': [-0.5,0.5],
-    'cll1': [-0.5,0.5],
-    'cHbox': [-10,20],
-    'cHDD' : [-20,20], 
-    'cHl1' : [-25,25], 
-    'cHW': [-10,5]  ,    
-    'cqq11': [-1,1]  ,     
-    'cqq1' : [-1,1] ,  
-    'cqq31':  [-1,1] ,   
-    'cqq3':  [-1,1] ,   
-    'cll':   [-70,70]   
-}
 
 def makeActivations(outdir, models, prefix):
     
