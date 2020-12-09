@@ -253,7 +253,7 @@ if __name__ == "__main__":
             mkdir(cp)
             cp = out + "/" + prefix + "_" + "_".join(p for p in processes) + "_" + op + "/" + model + "/datacards"
             mkdir(cp)
-            cp = out + "/" + prefix + "_" + "_".join(p for p in processes) + "_" + op + "/" + model + "/datacards" + "/" + "_".join(p for p in processes)
+            cp = out + "/" + prefix + "_" + "_".join(p for p in processes) + "_" + op + "/" + model + "/datacards" + "/" + "_".join(p for p in processes) + "_" + op
             mkdir(cp)
             var_fol_name = []
 
