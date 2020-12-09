@@ -152,8 +152,7 @@ if __name__ == "__main__":
             mkdir(outputFolder + "/" + op + "/" + model)
             if args.saveLL: mkdir(outputFolder + "/" + op + "/" + model + "/LLscans")
 
-
-            for j,vars_ in enumerate(glob(dir + "/" + model + "/datacards/" + process + "/*/")) :
+            for j,vars_ in enumerate(glob(dir + "/" + model + "/datacards/" + process + "_" + op + "/*/")) :
 
                 viara = vars_.split("/")[-2]
                 if viara in ignore:
