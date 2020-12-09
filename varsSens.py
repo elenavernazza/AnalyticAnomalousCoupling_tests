@@ -102,8 +102,8 @@ if __name__ == "__main__":
     ignore = args.ignore.split(",")
     mod = args.models.split(",")
 
-    final_plot_y_min = args.graphLimits.split(",")[0]
-    final_plot_y_max = args.graphLimits.split(",")[1]
+    final_plot_y_min = float(args.graphLimits.split(",")[0])
+    final_plot_y_max = float(args.graphLimits.split(",")[1])
 
     ops = []
     limits = {}
