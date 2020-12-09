@@ -58,6 +58,7 @@ def convertName(name):
         "ptj2" : "p_{T,j2}",
         "ptl1" : "p_{T,l1}",
         "ptl2" : "p_{T,l2}",
+        "ptl3" : "p_{T,l3}",
         "ptll" : "p_{T,ll}",
         "deltaetajj": "#Delta#eta_{jj}",
         "etaj1" : "#eta_{j1}",
