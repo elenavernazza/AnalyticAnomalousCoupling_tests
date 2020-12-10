@@ -95,14 +95,14 @@ if __name__ == "__main__":
     parser.add_argument('--prefix',     dest='prefix',     help='prefix of the subfolders, prefix_op', required = False, default="to_Latinos_")
     parser.add_argument('--saveLL',     dest='saveLL',     help='Save likelihood plots or not, default is true', required = False, default=True, action = "store_false")
     parser.add_argument('--drawText',     dest='drawText',     help='Plot text of best variables in final plot', required = False, default=True, action = "store_false")
-    parser.add_argument('--graphLimits',     dest='graphLimits',     help='comma separated list of final graph y axis limits, default is -2,2', required = False, default="-2,2")
+    parser.add_argument('--graphLimits',     dest='graphLimits',     help='comma separated list of final graph y axis limits, default is 2,2', required = False, default="2,2")
 
     args = parser.parse_args()
 
     ignore = args.ignore.split(",")
     mod = args.models.split(",")
 
-    final_plot_y_min = float(args.graphLimits.split(",")[0])
+    final_plot_y_min = float(-args.graphLimits.split(",")[0])
     final_plot_y_max = float(args.graphLimits.split(",")[1])
 
     ops = []

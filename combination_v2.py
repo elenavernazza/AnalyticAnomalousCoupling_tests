@@ -263,7 +263,7 @@ if __name__ == "__main__":
                 mkdir(cp + "/" + var_name + "/shapes/")
 
 
-                for process_, v in zip(vars_.keys(), wc):
+                for process_, v in zip(variables[op].keys(), wc):
                     os.system("cp {} {}/datacard_{}.txt".format(os.path.abspath(all_dict[process_][op][model][v]['datacard']), cp + "/" + var_name, process_))
                     os.system("cp {} {}".format(os.path.abspath(all_dict[process_][op][model][v]['shapes']), cp + "/" + var_name + "/shapes/"))
 
