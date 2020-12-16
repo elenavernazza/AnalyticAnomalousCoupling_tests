@@ -197,7 +197,10 @@ if __name__ == "__main__":
 
         for s in subf:
 
-            op = (s.split("/")[-2]).split("_")[-1]
+            op = (s.split("/")[-2])
+            op = op.split(combinations[process]["prefix"])[-1]
+            op = op.split(process + "_")[-1]
+
             if op in combinations[process]["ignore_ops"]: continue
             all_dict[process][op] = {}
             if op not in variables.keys() : 
@@ -277,5 +280,5 @@ if __name__ == "__main__":
 
                 os.chdir(global_path)
 
-            makeExecRunt(model, var_fol_name, [op], bash_scripts, "datacard")
-            makeExecRunc(var_fol_name, [op], bash_scripts)
+            makeExecRunt(model, var_fol_name, op.split("_"), bash_scripts, "datacard")
+            makeExecRunc(var_fol_name, op.split("_"), bash_scripts)
