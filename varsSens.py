@@ -58,6 +58,7 @@ def convertName(name):
         "ptj2" : "p_{T,j2}",
         "ptl1" : "p_{T,l1}",
         "ptl2" : "p_{T,l2}",
+        "ptl3" : "p_{T,l3}",
         "ptll" : "p_{T,ll}",
         "deltaetajj": "#Delta#eta_{jj}",
         "etaj1" : "#eta_{j1}",
@@ -94,15 +95,15 @@ if __name__ == "__main__":
     parser.add_argument('--prefix',     dest='prefix',     help='prefix of the subfolders, prefix_op', required = False, default="to_Latinos_")
     parser.add_argument('--saveLL',     dest='saveLL',     help='Save likelihood plots or not, default is true', required = False, default=True, action = "store_false")
     parser.add_argument('--drawText',     dest='drawText',     help='Plot text of best variables in final plot', required = False, default=True, action = "store_false")
-    parser.add_argument('--graphLimits',     dest='graphLimits',     help='comma separated list of final graph y axis limits, default is -2,2', required = False, default="-2,2")
+    parser.add_argument('--graphLimits',     dest='graphLimits',     help='comma separated list of final graph y axis limits, default is 2,2', required = False, default="2,2")
 
     args = parser.parse_args()
 
     ignore = args.ignore.split(",")
     mod = args.models.split(",")
 
-    final_plot_y_min = args.graphLimits.split(",")[0]
-    final_plot_y_max = args.graphLimits.split(",")[1]
+    final_plot_y_min = float(-args.graphLimits.split(",")[0])
+    final_plot_y_max = float(args.graphLimits.split(",")[1])
 
     ops = []
     limits = {}
@@ -152,8 +153,7 @@ if __name__ == "__main__":
             mkdir(outputFolder + "/" + op + "/" + model)
             if args.saveLL: mkdir(outputFolder + "/" + op + "/" + model + "/LLscans")
 
-
-            for j,vars_ in enumerate(glob(dir + "/" + model + "/datacards/" + process + "/*/")) :
+            for j,vars_ in enumerate(glob(dir + "/" + model + "/datacards/" + process + "_" + op + "/*/")) :
 
                 viara = vars_.split("/")[-2]
                 if viara in ignore:

@@ -7,6 +7,24 @@ from glob import glob
 from tqdm import tqdm
 import stat
 
+opr = {
+    'cHDD':[-20,20],
+    'cHWB':[-20,20], 
+    'cHW':[-30,30], 
+    'cHbox':[-20,20], 
+    'cHl1':[-50,50], 
+    'cHl3':[-30,30], 
+    'cHq1':[-30,30], 
+    'cHq3':[-30,30], 
+    'cW':[-30,30], 
+    'cll1':[-30,30], 
+    'cll':[-70,70], 
+    'cqq11':[-30,30], 
+    'cqq1':[-30,30], 
+    'cqq31':[-30,30], 
+    'cqq3':[-30,30]
+}
+
 
 def makeActivations(outdir, models, prefix):
     
@@ -179,7 +197,10 @@ if __name__ == "__main__":
 
         for s in subf:
 
-            op = (s.split("/")[-2]).split("_")[-1]
+            op = (s.split("/")[-2])
+            op = op.split(combinations[process]["prefix"])[-1]
+            op = op.split(process + "_")[-1]
+
             if op in combinations[process]["ignore_ops"]: continue
             all_dict[process][op] = {}
             if op not in variables.keys() : 
@@ -208,16 +229,10 @@ if __name__ == "__main__":
     #find common operators
     processes = combinations.keys()
     common_ops = []
-    vars_ = dict.fromkeys(processes)
+    
     for i,op in enumerate(variables.keys()):
         proc = variables[op].keys()
-        if all(i in proc for i in processes): common_ops.append(op)
-
-        for p in proc:
-            if p in variables[op].keys():
-                vars_[p] = variables[op][p]
-
-    var_comb = list(itertools.product(*(vars_.values())))   
+        if all(i in proc for i in processes): common_ops.append(op) 
 
     print(" @ @ @ Making vars combo @ @ @")
 
@@ -234,6 +249,8 @@ if __name__ == "__main__":
         mkdir(cp)
         makeActivations(out, models, prefix + "_" + "_".join(p for p in processes) + "_")
 
+        var_comb = list(itertools.product(*(variables[op].values())))  
+
         for model in models:
             cp = out + "/" + prefix + "_" + "_".join(p for p in processes) + "_" + op + "/" + model
             mkdir(cp)
@@ -249,7 +266,7 @@ if __name__ == "__main__":
                 mkdir(cp + "/" + var_name + "/shapes/")
 
 
-                for process_, v in zip(vars_.keys(), wc):
+                for process_, v in zip(variables[op].keys(), wc):
                     os.system("cp {} {}/datacard_{}.txt".format(os.path.abspath(all_dict[process_][op][model][v]['datacard']), cp + "/" + var_name, process_))
                     os.system("cp {} {}".format(os.path.abspath(all_dict[process_][op][model][v]['shapes']), cp + "/" + var_name + "/shapes/"))
 
@@ -263,5 +280,5 @@ if __name__ == "__main__":
 
                 os.chdir(global_path)
 
-            makeExecRunt(model, var_fol_name, [op], bash_scripts, "datacard")
-            makeExecRunc(var_fol_name, [op], bash_scripts)
+            makeExecRunt(model, var_fol_name, op.split("_"), bash_scripts, "datacard")
+            makeExecRunc(var_fol_name, op.split("_"), bash_scripts)
