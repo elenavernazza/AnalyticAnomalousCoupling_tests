@@ -169,7 +169,7 @@ if __name__ == "__main__":
                 graphScan.GetZaxis().SetTitle("-2 #Delta LL")
                 graphScan.GetXaxis().SetTitle(op[0])
                 graphScan.GetYaxis().SetTitle(op[1])
-                graphScan.SetTitle(viara)
+                #graphScan.SetTitle(viara)
                 graphScan.SetLineColor(ROOT.kRed)
                 graphScan.SetLineWidth(2)
                 graphScan.SetNpx(200)
@@ -199,7 +199,7 @@ if __name__ == "__main__":
                     cs = ROOT.TCanvas("c_" + op[0] + "_" + op[1] + "_" + viara, "cs", 800, 800)
                     margins = 0.11
 
-                    ROOT.gPad.SetRightMargin(margins)
+                    ROOT.gPad.SetRightMargin(0.15)
                     ROOT.gPad.SetLeftMargin(margins)
                     ROOT.gPad.SetBottomMargin(margins)
                     ROOT.gPad.SetTopMargin(margins)
@@ -209,21 +209,23 @@ if __name__ == "__main__":
                     exp.SetPoint(0, x_min, y_min)
                     exp.SetMarkerStyle(34)
                     exp.SetMarkerSize(2)
+                    exp.SetMarkerColor(ROOT.kRed)
 
                     conts = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
                     cont_graphs = [conts.At(i).First() for i in range(2)]
                     colors = [ROOT.kRed, ROOT.kRed]
-                    linestyle = [1, 2]
+                    linestyle = [1, 7]
 
                     graphScan.GetHistogram().Draw("colz")
                     graphScan.GetHistogram().GetXaxis().SetTitle(op[0])
                     graphScan.GetHistogram().GetYaxis().SetTitle(op[1])
                     graphScan.GetHistogram().GetZaxis().SetTitle("-2#Delta LL")
+                    graphScan.GetHistogram().SetTitle("")
                     cs.Modified()
                     cs.Update()
 
                     leg = ROOT.TLegend(0.82, 0.85, 0.67, 0.7)
-                    leg.AddEntry(exp, "Best Fit")
+                    leg.AddEntry(exp, "Best Fit", "P")
 
                     for i, item in enumerate(cont_graphs):
                         try:
@@ -233,7 +235,7 @@ if __name__ == "__main__":
                             item.SetLineStyle(linestyle[i])
                             item.SetLineWidth(2)
                             item.Draw("L same")
-                            leg.AddEntry(item, "#pm {}#sigma".format(i+1))
+                            leg.AddEntry(item, "#pm {}#sigma".format(i+1), "L")
                         except:
                             continue
 
