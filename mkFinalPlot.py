@@ -45,6 +45,8 @@ def mkdir(path):
 
 if __name__ == "__main__":
 
+    ROOT.gROOT.SetBatch(1)
+
     parser = argparse.ArgumentParser(description='Command line parser for model testing')
     parser.add_argument('--baseFolder',     dest='baseFolder',     help='Base folder', required = True)
     parser.add_argument('--graphLimits',     dest='graphLimits',     help='comma separated list of final graph y axis limits, default is 2,2', required = False, default="2,2")
@@ -95,7 +97,7 @@ if __name__ == "__main__":
         margins = 0.11
         ROOT.gPad.SetRightMargin(margins)
         ROOT.gPad.SetLeftMargin(margins)
-        ROOT.gPad.SetBottomMargin(margins)
+        ROOT.gPad.SetBottomMargin(margins+0.08)
         ROOT.gPad.SetTopMargin(margins)
         ROOT.gPad.SetFrameLineWidth(3)
 
@@ -198,7 +200,7 @@ if __name__ == "__main__":
         if args.drawText:
             count = 0
             for x,y in zip(xs, two_sup):
-                y_ = y + 0.5
+                y_ = y + 0.2
                 #do not plot if the text pass the plot boundaries
                 #if y_ > final_plot_y_max - 0.1: continue
                 var = vars_[count]
@@ -209,6 +211,6 @@ if __name__ == "__main__":
                 latex.DrawLatex(x-0.14 - 0.02*len(convertName(var)),y_,"{}".format(convertName(var)))
 
         c.Draw()
-        c.Print(outputFolder + "/" + "{}.pdf".format(model))
+        c.Print(outputFolder + "/" + "{}.png".format(model))
 
     f_in.close()

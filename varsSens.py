@@ -85,6 +85,8 @@ def mkdir(path):
 
 if __name__ == "__main__":
 
+    ROOT.gROOT.SetBatch(1)
+
     parser = argparse.ArgumentParser(description='Command line parser for model testing')
     parser.add_argument('--baseFolder',     dest='baseFolder',     help='Base folder', required = True)
     parser.add_argument('--lumi',     dest='lumi',     help='Lumi', required = False, default="100")
@@ -102,7 +104,7 @@ if __name__ == "__main__":
     ignore = args.ignore.split(",")
     mod = args.models.split(",")
 
-    final_plot_y_min = float(-args.graphLimits.split(",")[0])
+    final_plot_y_min = -float(args.graphLimits.split(",")[0])
     final_plot_y_max = float(args.graphLimits.split(",")[1])
 
     ops = []
@@ -457,7 +459,7 @@ if __name__ == "__main__":
                 latex.DrawLatex(x-0.14 - 0.02*len(convertName(var)),y_,"{}".format(convertName(var)))
 
 
-        c.Draw()
+#        c.Draw()
         c.Print(outputFolder + "/" + "{}.pdf".format(model))
 
     f_out.close()

@@ -103,8 +103,8 @@ class CombinePlotManager:
         self.optionals.append(tex)
 
     def generateAllBoxes(self):
-        self.generateCMSBox()
-        self.generatePreliminaryBox()
+#        self.generateCMSBox()
+#        self.generatePreliminaryBox()
         self.generateTeVBox()
         self.generateLumiBox()
 
