@@ -200,14 +200,19 @@ if __name__ == "__main__":
             op = (s.split("/")[-2])
             op = op.split(combinations[process]["prefix"])[-1]
             op = op.split(process + "_")[-1]
-
+             
             if op in combinations[process]["ignore_ops"]: continue
-            all_dict[process][op] = {}
+            
+              
             if op not in variables.keys() : 
-                variables[op] = {}
+                if "_".join(i for i in  op.split("_")[::-1]) in variables.keys():
+                  op = "_".join(i for i in  op.split("_")[::-1])
+                else:
+                  variables[op] = {}
             if process not in  variables[op].keys():
                 variables[op][process] = []
 
+            all_dict[process][op] = {}
 
             for model in combinations[process]["models"]:
                 all_dict[process][op][model] = {}
@@ -233,7 +238,7 @@ if __name__ == "__main__":
     for i,op in enumerate(variables.keys()):
         proc = variables[op].keys()
         if all(i in proc for i in processes): common_ops.append(op) 
-
+    
     print(" @ @ @ Making vars combo @ @ @")
 
     global_path = os.getcwd()
@@ -248,9 +253,9 @@ if __name__ == "__main__":
         bash_scripts = cp
         mkdir(cp)
         makeActivations(out, models, prefix + "_" + "_".join(p for p in processes) + "_")
-
+        
         var_comb = list(itertools.product(*(variables[op].values())))  
-
+        
         for model in models:
             cp = out + "/" + prefix + "_" + "_".join(p for p in processes) + "_" + op + "/" + model
             mkdir(cp)
@@ -267,6 +272,7 @@ if __name__ == "__main__":
 
 
                 for process_, v in zip(variables[op].keys(), wc):
+                    
                     os.system("cp {} {}/datacard_{}.txt".format(os.path.abspath(all_dict[process_][op][model][v]['datacard']), cp + "/" + var_name, process_))
                     os.system("cp {} {}".format(os.path.abspath(all_dict[process_][op][model][v]['shapes']), cp + "/" + var_name + "/shapes/"))
 
