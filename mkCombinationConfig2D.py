@@ -93,7 +93,12 @@ if __name__ == "__main__":
 
                 subfit = glob(ch_path + "/" + ch_prefix + "_" + channel + "_" + subop + "/" + args.model +  "/datacards/" + channel + "_" + subop + "/{}/higgs*.root".format(var))
 
-                if len(subfit) != 1: sys.exit("[ERROR] Missing fit for channel in combination, searched at: {}".format(ch_path + "/" + ch_prefix + "_" + channel + "_" + subop + "/" + args.model +  "/datacards/" + channel + "_" + subop + "/{}/higgs*.root".format(var)))
+                if len(subfit) != 1: 
+                    prova = "_".join(i for i in subop.split("_")[::-1])
+                    subfit = glob(ch_path + "/" + ch_prefix + "_" + channel + "_" + prova + "/" + args.model +  "/datacards/" + channel + "_" + prova + "/{}/higgs*.root".format(var))
+
+                    if len(subfit) != 1:
+                        sys.exit("[ERROR] Missing fit for channel in combination, searched at: {}".format(ch_path + "/" + ch_prefix + "_" + channel + "_" + subop + "/" + args.model +  "/datacards/" + channel + "_" + subop + "/{}/higgs*.root".format(var)))
 
                 final_dict[subop][channel] = subfit[0]
 
