@@ -237,7 +237,7 @@ if __name__ == "__main__":
 
         for op_pair in operators.keys():
 
-            mkdir(args.outf + "/" + op_pair)
+            #mkdir(args.outf + "/" + op_pair)
 
             ops = op_pair.split("_")
             op_x = ops[0]
@@ -280,6 +280,7 @@ if __name__ == "__main__":
 
             #first graph
             graphs[0][1].GetYaxis().SetTitleOffset(1.5)
+            graphs[0][1].GetXaxis().SetTitleOffset(1.2)
             graphs[0][1].GetYaxis().SetTitle(ConvertOptoLatex(op_y))
             graphs[0][1].GetXaxis().SetTitle(ConvertOptoLatex(op_x))
             graphs[0][1].SetTitle("")
@@ -322,5 +323,5 @@ if __name__ == "__main__":
 
             leg.Draw()
             c.Draw()
-            c.Print(args.outf + "/" + op_pair + "/" + "_".join(i for i in channels) + ".pdf")
+            c.Print(args.outf + "/" + "_".join(i for i in channels) + "_" + op_pair + ".pdf")
 

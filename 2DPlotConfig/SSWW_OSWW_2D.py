@@ -1582,3 +1582,8 @@ operators['cHq1_cll']['combined']['color'] =  '1'
 operators['cHq1_cll']['combined']['linestyle'] =  '1'
 
 
+plt_options = {
+
+    'process': "SS-OS WW Combination",
+    'xpos': 0.53,
+}
