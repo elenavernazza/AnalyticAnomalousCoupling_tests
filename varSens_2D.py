@@ -142,6 +142,7 @@ if __name__ == "__main__":
                 if viara in ignore:
                     print("@ @ @ Skipping {} @ @ @".format(viara))
                     continue
+                print(vars_)
 
                 ls_file = vars_ + "higgsCombineTest.MultiDimFit.mH125.root"
                 if not os.path.isfile(ls_file): sys.exit("[ERROR] no fit for {}".format(vars_))
@@ -169,11 +170,11 @@ if __name__ == "__main__":
                 graphScan.GetZaxis().SetTitle("-2 #Delta LL")
                 graphScan.GetXaxis().SetTitle(op[0])
                 graphScan.GetYaxis().SetTitle(op[1])
-                #graphScan.SetTitle(viara)
+                graphScan.SetTitle(viara)
                 graphScan.SetLineColor(ROOT.kRed)
                 graphScan.SetLineWidth(2)
-                graphScan.SetNpx(200)
-                graphScan.SetNpy(200)
+                #graphScan.SetNpx(100)
+                #graphScan.SetNpy(100)
 
                 graphScan.GetZaxis().SetRangeUser(0, float(args.maxNLL))
                 graphScan.GetHistogram().GetZaxis().SetRangeUser(0, float(args.maxNLL))
@@ -324,7 +325,7 @@ if __name__ == "__main__":
             max_ = max(two_sup)
             min_ = -max(two_inf)
 
-            best_v = 1000
+            best_v = 1e9
             best_index = 0
             count = 0
             #best variable in 68% range + 95% range / 2
@@ -333,9 +334,9 @@ if __name__ == "__main__":
             #         best_v = (k+z+l+m)/2
             #         best_index = count
             #     count += 1
-            for k,z in zip(one_inf, one_sup):
-                if k+z < best_v:
-                    best_v = k+z
+            for k in one_inf:
+                if k < best_v:
+                    best_v = k
                     best_index = count
                 count += 1
 
@@ -344,7 +345,7 @@ if __name__ == "__main__":
             best[model]["one_s"].append([one_inf[best_index], one_sup[best_index]])
             best[model]["two_s"].append([two_inf[best_index], two_sup[best_index]])
             best[model]["best"].append([0,0])
-
+            print(best[model]["one_s"])
             #print("@[INFO] Best Var: {} for model: {}".format(var[best_index], model))
 
             h.LabelsDeflate("X")
