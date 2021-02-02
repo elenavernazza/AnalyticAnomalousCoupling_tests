@@ -32,6 +32,7 @@ def convertName(name):
         "ptj2" : "p_{T,j2}",
         "ptl1" : "p_{T,l1}",
         "ptl2" : "p_{T,l2}",
+        "ptl3" : "p_{T,l3}",
         "ptll" : "p_{T,ll}",
         "deltaetajj": "#Delta#eta_{jj}",
         "etaj1" : "#eta_{j1}",
@@ -57,6 +58,8 @@ def mkdir(path):
 
 
 if __name__ == "__main__":
+
+    ROOT.gROOT.SetBatch(1)
 
     parser = argparse.ArgumentParser(description='Command line parser for model testing')
     parser.add_argument('--baseFolder',     dest='baseFolder',     help='Base folder', required = True)
@@ -197,7 +200,7 @@ if __name__ == "__main__":
 
                 if args.saveLL:
                     
-                    cs = ROOT.TCanvas("c_" + op[0] + "_" + op[1] + "_" + viara, "cs", 800, 800)
+                    cs = ROOT.TCanvas("c_" + op[0] + "_" + op[1] + "_" + viara, "cs", 900, 800)
                     margins = 0.11
 
                     ROOT.gPad.SetRightMargin(0.15)
@@ -352,7 +355,7 @@ if __name__ == "__main__":
             h.LabelsDeflate("Y")
             h.LabelsOption("v")
 
-            ROOT.gStyle.SetLabelSize(.05, "XY")
+            ROOT.gStyle.SetLabelSize(.04, "XY")
 
             h.GetYaxis().SetRangeUser(1.5*min_,2*max_)
             g1.SetHistogram(h)

@@ -103,6 +103,8 @@ def mkdir(path):
 
 if __name__ == "__main__":
 
+    ROOT.gROOT.SetBatch(1)
+
     parser = argparse.ArgumentParser(description='Command line parser for 2D plotting scans')
     parser.add_argument('--cfg',     dest='cfg',     help='the config file', required = True)
     parser.add_argument('--maxNLL',     dest='maxNLL',     help='Max likelihood', required = False, default = "20")
@@ -185,15 +187,15 @@ if __name__ == "__main__":
                 y_max_new = canvas_d['1sg'][idx*5].GetYaxis().GetXmax() + abs(0.2*canvas_d['1sg'][idx*5].GetYaxis().GetXmax()) 
                 canvas_d['1sg'][idx*5].GetYaxis().SetRangeUser(y_min_new, y_max_new)
                 canvas_d['1sg'][idx*5].GetYaxis().SetTitleOffset(1.5)
-                canvas_d['1sg'][idx*5].GetYaxis().SetTitle(op)
+                canvas_d['1sg'][idx*5].GetYaxis().SetTitle(ConvertOptoLatex(op))
                 canvas_d['1sg'][idx*5].GetXaxis().SetTitle("2nd Operator")
                 canvas_d['1sg'][idx*5].SetTitle("")
                 canvas_d['1sg'][idx*5].SetLineStyle(linestyles[0])
                 canvas_d['1sg'][idx*5].Draw("AL")
                 canvas_d['min'][idx*5].Draw("P")
 
-                name = canvas_d['n_op'][idx*5]
-                if canvas_d['scale'][idx*5][0] != 1: name =  str(canvas_d['scale'][idx*5][0]) + " #times " + name
+                name = ConvertOptoLatex(canvas_d['n_op'][idx*5])
+                if canvas_d['scale'][idx*5][0] != 1: name = str(canvas_d['scale'][idx*5][0]) + " #times " + name
 
                 leg.AddEntry(canvas_d['1sg'][idx*5], name, "L")
 
@@ -203,7 +205,7 @@ if __name__ == "__main__":
                     j.Draw("P same")
                     name = n 
                     if scale[0]!=1 : name =  str(scale[0]) + " #times " + n
-                    leg.AddEntry(i, name, "L")
+                    leg.AddEntry(i, ConvertOptoLatex(name), "L")
 
                 #Draw fancy
 
