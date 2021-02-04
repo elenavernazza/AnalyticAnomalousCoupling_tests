@@ -249,19 +249,36 @@ if __name__ == "__main__":
 
 
             graphs = []
-
+            
+            #cycling on all the channels in the cfg
             for key in channels:
+
+                #extrapolate gs (the full 2d scan), contours (2 graphs [1sigma and 2 sigma])
+                # and the minimum (0,0) by construction
                 gs, cont_graphs, exp = Retrieve2DLikelihood(operators[op_pair][key]['path'], 
                                                                 [op_x, op_y], args.maxNLL, 
                                                                         1., 1. )
 
+
+                min_x, max_x = cont_graphs[0].GetXaxis().GetXmin(), cont_graphs[0].GetXaxis().GetXmax() 
+                min_y, max_y = cont_graphs[0].GetYaxis().GetXmin(), cont_graphs[0].GetYaxis().GetXmax() 
+
+                #set style
                 cont_graphs[0].SetLineWidth(3)
 
-                cont_graphs[0].SetLineColor(int(operators[op_pair][key]['color']))
+                
+
+                #shaded combination 
+                if key == "combined":
+                    cont_graphs[0].SetLineColorAlpha(int(operators[op_pair][key]['color']), 0.7)
+                else:
+                    cont_graphs[0].SetLineColor(int(operators[op_pair][key]['color']))
+                    
                 cont_graphs[0].SetLineStyle(int(operators[op_pair][key]['linestyle']))
 
-                graphs.append([key, cont_graphs[0], exp])
+                graphs.append([key, cont_graphs[0], exp, [min_x, max_x],[min_y, max_y]])
 
+            #zoomed version
             c = ROOT.TCanvas("c_{}".format(op_pair), "c_{}".format(op_pair), 1000, 1000)
 
             margins = 0.13
@@ -294,11 +311,11 @@ if __name__ == "__main__":
             leg.AddEntry(graphs[0][1], name, "L")
 
             for i in graphs[1:]:
-                    i[1].Draw("L same")
-                    i[2].Draw("P same")
-                    name = i[0]
-                    #if scale[0]!=1 : name =  str(scale[0]) + " #times " + n
-                    leg.AddEntry(i[1], name, "L")
+                i[1].Draw("L same")
+                i[2].Draw("P same")
+                name = i[0]
+                #if scale[0]!=1 : name =  str(scale[0]) + " #times " + n
+                leg.AddEntry(i[1], name, "L")
 
             #Draw fancy
 
@@ -315,10 +332,12 @@ if __name__ == "__main__":
                 else: xpos = plt_options['xpos']
                 if 'size' not in  plt_options.keys(): size = 0.04
                 else: size = plt_options['size']
+                if 'font' not in  plt_options.keys(): font = 42
+                else: font = plt_options['font']
                 tex4 = ROOT.TLatex(xpos,.89,plt_options['process'])
                 tex4.SetNDC()
                 tex4.SetTextAlign(31)
-                tex4.SetTextFont(42)
+                tex4.SetTextFont(font)
                 tex4.SetTextSize(size)
                 tex4.SetLineWidth(2)
                 tex4.Draw()
@@ -326,4 +345,93 @@ if __name__ == "__main__":
             leg.Draw()
             c.Draw()
             c.Print(args.outf + "/" + "_".join(i for i in channels) + "_" + op_pair + ".pdf")
+
+
+            #unzoomed version
+
+            lower_x = []
+            higher_x = []
+            lower_y = []
+            higher_y = []
+
+            for i in graphs:
+                lower_x.append(i[3][0])
+                higher_x.append(i[3][1])
+                lower_y.append(i[4][0])
+                higher_y.append(i[4][1])
+            
+            min_x  = min(lower_x)
+            max_x  = max(higher_x)
+            min_y  = min(lower_y)
+            max_y  = max(higher_y)
+
+            c = ROOT.TCanvas("c_{}_unzoomed".format(op_pair), "c_{}_unzoomed".format(op_pair), 1000, 1000)
+
+            margins = 0.13
+
+            ROOT.gPad.SetRightMargin(margins)
+            ROOT.gPad.SetLeftMargin(margins)
+            ROOT.gPad.SetBottomMargin(margins)
+            ROOT.gPad.SetTopMargin(margins)
+            ROOT.gPad.SetFrameLineWidth(3)
+            ROOT.gPad.SetTicks()
+
+            leg = ROOT.TLegend(0.15, 0.8, 0.85, 0.85)
+            leg.SetBorderSize(0)
+            leg.SetNColumns(len(graphs))
+            leg.SetTextSize(0.025)
+
+            c.SetGrid()
+
+            #first graph
+            graphs[0][1].GetYaxis().SetRangeUser(min_y, max_y)
+            graphs[0][1].GetXaxis().SetRangeUser(min_x, max_x)
+            graphs[0][1].GetYaxis().SetTitleOffset(1.5)
+            graphs[0][1].GetXaxis().SetTitleOffset(1.2)
+            graphs[0][1].GetYaxis().SetTitle(ConvertOptoLatex(op_y))
+            graphs[0][1].GetXaxis().SetTitle(ConvertOptoLatex(op_x))
+            graphs[0][1].SetTitle("")
+            #graphs[0][1].SetLineStyle(linestyles[0])
+            graphs[0][1].Draw("AL")
+            graphs[0][2].Draw("P same")
+
+            name = graphs[0][0]
+            leg.AddEntry(graphs[0][1], name, "L")
+
+            for i in graphs[1:]:
+                i[1].Draw("L same")
+                i[2].Draw("P same")
+                name = i[0]
+                #if scale[0]!=1 : name =  str(scale[0]) + " #times " + n
+                leg.AddEntry(i[1], name, "L")
+
+            #Draw fancy
+
+            tex3 = ROOT.TLatex(0.86,.89,"100 fb^{-1}   (13 TeV)")
+            tex3.SetNDC()
+            tex3.SetTextAlign(31)
+            tex3.SetTextFont(42)
+            tex3.SetTextSize(0.04)
+            tex3.SetLineWidth(2)
+            tex3.Draw()
+
+            if "process" in plt_options.keys():
+                if 'xpos' not in  plt_options.keys(): xpos = 0.35
+                else: xpos = plt_options['xpos']
+                if 'size' not in  plt_options.keys(): size = 0.04
+                else: size = plt_options['size']
+                if 'font' not in  plt_options.keys(): font = 42
+                else: font = plt_options['font']
+                tex4 = ROOT.TLatex(xpos,.89,plt_options['process'])
+                tex4.SetNDC()
+                tex4.SetTextAlign(31)
+                tex4.SetTextFont(font)
+                tex4.SetTextSize(size)
+                tex4.SetLineWidth(2)
+                tex4.Draw()
+
+            leg.Draw()
+            c.Draw()
+            c.Print(args.outf + "/" + op_pair + "_unzoomed.pdf")
+
 
