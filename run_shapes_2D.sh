@@ -28,6 +28,7 @@ python plot_shapes_2D.py $1/EFT/datacards/$3/deltaphijj/shapes/histos_$3.root "#
 python plot_shapes_2D.py $1/EFT/datacards/$3/deltaetajj/shapes/histos_$3.root "#Delta#eta_{jj}" $2/$3_$4_shapes/$4_deltaetajj.png $min $max $step $4
 python plot_shapes_2D.py $1/EFT/datacards/$3/met/shapes/histos_$3.root "MET [GeV]" $2/$3_$4_shapes/$4_met.png $min $max $step $4
 python plot_shapes_2D.py $1/EFT/datacards/$3/mll/shapes/histos_$3.root "m_{ll} [GeV]" $2/$3_$4_shapes/$4_mll.png $min $max $step $4
+python plot_shapes_2D.py $1/EFT/datacards/$3/mjj/shapes/histos_$3.root "m_{jj} [GeV]" $2/$3_$4_shapes/$4_mjj.png $min $max $step $4
 python plot_shapes_2D.py $1/EFT/datacards/$3/phij1/shapes/histos_$3.root "phi_{j1}" $2/$3_$4_shapes/$4_phij1.png $min $max $step $4
 python plot_shapes_2D.py $1/EFT/datacards/$3/phij2/shapes/histos_$3.root "phi_{j2}" $2/$3_$4_shapes/$4_phij2.png $min $max $step $4
 python plot_shapes_2D.py $1/EFT/datacards/$3/ptj1/shapes/histos_$3.root "p_{T,j1} [GeV]" $2/$3_$4_shapes/$4_ptj1.png $min $max $step $4
