@@ -4,13 +4,13 @@ import argparse
 import numpy as np 
 import itertools
 from glob import glob
-from tqdm import tqdm
 import stat
 import ROOT
 from copy import deepcopy
 from array import array
 import math
 from collections import OrderedDict
+from operator import itemgetter
 
 def ConvertOptoLatex(op):
 
@@ -39,15 +39,18 @@ def ConvertOptoLatex(op):
 
     return d[op]
 
-def Retrieve2DLikelihood(file, op, maxNLL, xscale, yscale):
+def RetrieveCont(operators, op, proc, maxNLL):
+
+    file = operators[op][proc]['path']
+    op_ = [operators[op][proc]['op'],op]
 
     f = ROOT.TFile(file)
     t = f.Get("limit")
 
     for i, event in enumerate(t):
         if i == 0:
-            x_min = getattr(event, "k_" + op[0])
-            y_min = getattr(event, "k_" + op[1])
+            x_min = getattr(event, "k_" + op_[0])
+            y_min = getattr(event, "k_" + op_[1])
 
         else: break
 
@@ -57,7 +60,7 @@ def Retrieve2DLikelihood(file, op, maxNLL, xscale, yscale):
     exp.SetMarkerStyle(34)
     exp.SetMarkerColor(ROOT.kGray +2)
 
-    to_draw = ROOT.TString("{}:{}:2*deltaNLL".format("k_" + op[0], "k_" + op[1]))
+    to_draw = ROOT.TString("{}:{}:2*deltaNLL".format("k_" + op_[0], "k_" + op_[1]))
     n = t.Draw( to_draw.Data() , "deltaNLL<{} && deltaNLL>{}".format(float(maxNLL),-30), "l")
 
     x = np.ndarray((n), 'd', t.GetV1())
@@ -65,34 +68,145 @@ def Retrieve2DLikelihood(file, op, maxNLL, xscale, yscale):
     z_ = np.ndarray((n), 'd', t.GetV3())
 
     z = np.array([i-min(z_) for i in z_]) #shifting likelihood toward 0
-    x = np.array([i*xscale for i in x])
-    y = np.array([i*yscale for i in y])
 
-    graphScan = ROOT.TGraph2D(n,x,y,z)
+    graphScan1 = ROOT.TGraph2D(n,x,y,z)
+    graphScan1.SetNpx(100)
+    graphScan1.SetNpy(100)
 
-    graphScan.SetNpx(100)
-    graphScan.SetNpy(100)
+    graphScan1.GetZaxis().SetRangeUser(0, float(maxNLL))
+    graphScan1.GetHistogram().GetZaxis().SetRangeUser(0, float(maxNLL))
 
-    graphScan.GetZaxis().SetRangeUser(0, float(maxNLL))
-    graphScan.GetHistogram().GetZaxis().SetRangeUser(0, float(maxNLL))
+    for i in range(graphScan1.GetHistogram().GetSize()):
+        if (graphScan1.GetHistogram().GetBinContent(i+1) == 0):
+            graphScan1.GetHistogram().SetBinContent(i+1, 100)
 
-    for i in range(graphScan.GetHistogram().GetSize()):
-        if (graphScan.GetHistogram().GetBinContent(i+1) == 0):
-            graphScan.GetHistogram().SetBinContent(i+1, 100)
-
-    hist = graphScan.GetHistogram().Clone("arb_hist")
-    hist.SetContour(2, np.array([2.30, 5.99]))
-    hist.Draw("CONT Z LIST")
+    hist1 = graphScan1.GetHistogram().Clone("arb_hist")
+    hist1.SetContour(2, np.array([2.30, 5.99]))
+    hist1.Draw("CONT Z LIST")
     ROOT.gPad.Update()
 
-    conts = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
-    cont_graphs = [deepcopy(conts.At(i).First()) for i in range(2)]
+    conts1 = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
+    cont_graphs1 = [deepcopy(conts1.At(i).First()) for i in range(2)]
 
-    gs = deepcopy(graphScan)
+    gs = deepcopy(graphScan1)
 
     f.Close()
 
-    return gs, cont_graphs, exp
+    return cont_graphs1
+
+
+def Retrieve2DLikelihood(operators, op, maxNLL):
+
+    canvas_d = []
+
+    for proc in operators[op].keys():
+
+        cont_graphs1 = RetrieveCont(operators, op, proc, maxNLL)
+
+        x_min = cont_graphs1[0].GetXaxis().GetXmin()
+        x_max = cont_graphs1[0].GetXaxis().GetXmax()
+        delta = max(abs(x_min),abs(x_max))
+
+        if delta > 1:
+            if 1 < delta < 2:
+                xscale = 0.5
+            elif 2 < delta < 10:
+                xscale = 0.1
+            elif 10 < delta < 80:
+                xscale = 0.01
+            elif delta > 80 :
+                xscale = 0.001
+        else:
+            xscale = 1
+
+        file = operators[op][proc]['path']
+        op_ = [operators[op][proc]['op'],op]
+
+        f = ROOT.TFile(file)
+        t = f.Get("limit")
+
+        for i, event in enumerate(t):
+            if i == 0:
+                x_min = getattr(event, "k_" + op_[0])
+                y_min = getattr(event, "k_" + op_[1])
+
+            else: break
+
+        exp = ROOT.TGraph()
+        exp.SetPoint(0, x_min, y_min)
+        exp.SetMarkerSize(3)
+        exp.SetMarkerStyle(34)
+        exp.SetMarkerColor(ROOT.kGray +2)
+
+        to_draw = ROOT.TString("{}:{}:2*deltaNLL".format("k_" + op_[0], "k_" + op_[1]))
+        n = t.Draw( to_draw.Data() , "deltaNLL<{} && deltaNLL>{}".format(float(maxNLL),-30), "l")
+
+        x = np.ndarray((n), 'd', t.GetV1())
+        y = np.ndarray((n), 'd', t.GetV2())
+        z_ = np.ndarray((n), 'd', t.GetV3())
+ 
+        z = np.array([i-min(z_) for i in z_]) #shifting likelihood toward 0
+        x = np.array([i*xscale for i in x])
+        graphScan = ROOT.TGraph2D(n,x,y,z)
+
+        graphScan.SetNpx(100)
+        graphScan.SetNpy(100)
+
+        graphScan.GetZaxis().SetRangeUser(0, float(maxNLL))
+        graphScan.GetHistogram().GetZaxis().SetRangeUser(0, float(maxNLL))
+
+        for i in range(graphScan.GetHistogram().GetSize()):
+            if (graphScan.GetHistogram().GetBinContent(i+1) == 0):
+                graphScan.GetHistogram().SetBinContent(i+1, 100)
+
+        hist = graphScan.GetHistogram().Clone("arb_hist")
+        hist.SetContour(2, np.array([2.30, 5.99]))
+        hist.Draw("CONT Z LIST")
+        ROOT.gPad.Update()
+
+        conts = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
+        cont_graphs = [deepcopy(conts.At(i).First()) for i in range(2)]
+
+        gs = deepcopy(graphScan)
+
+        f.Close()
+
+        y_min = abs(cont_graphs[0].GetYaxis().GetXmin())
+        y_max = abs(cont_graphs[0].GetYaxis().GetXmax())
+        extreme = max(y_min, y_max)
+
+        print(operators[op][proc]['op'],op)
+        color = operators[op][proc]['linecolor']
+        cont_graphs[0].SetLineWidth(4)
+
+        canvas_d.append({
+            '1sg' : cont_graphs[0],
+            'min' : exp,
+            'names' : operators[op][proc]['name'],
+            'base_op' : op,
+            'n_op' : operators[op][proc]['op'],
+            'scale' : xscale,
+            'extr' : extreme,
+        })
+
+    canvas_d = sorted(canvas_d, key=itemgetter('extr'))
+
+    canvas_ord = {
+        '1sg' : [],
+        'min' : [],
+        'names' : [],
+        'base_op' : op,
+        'n_op' : [],
+        'scale' : [],
+        'extr' : [],
+    }
+
+    for i in range(len(canvas_d)-1):
+        for key in canvas_ord.keys():
+            if key is not 'base_op':
+                canvas_ord[key].append(canvas_d[i][key])
+
+    return canvas_ord
 
 
 def mkdir(path):
@@ -124,42 +238,13 @@ if __name__ == "__main__":
     if not is_combo:
 
         for op in operators.keys():
-            canvas_d = {
-                '1sg' : [],
-                '2sg' : [],
-                'min' : [],
-                'names' : [],
-                'base_op' : op,
-                'n_op' : [],
-                'scale' : [],
-            }
+
+            canvas_d = Retrieve2DLikelihood (operators, op, args.maxNLL)
 
             mkdir(args.outf + "/" + op)
 
-            for proc in operators[op].keys():
-                gs, cont_graphs, exp = Retrieve2DLikelihood(operators[op][proc]['path'], 
-                                                                [operators[op][proc]['op'],op], args.maxNLL, 
-                                                                        float(operators[op][proc]['xscale']), float(operators[op][proc]['yscale']) )
-                
-                print(operators[op][proc]['op'],op)
-                color = operators[op][proc]['linecolor']
-                size = operators[op][proc]['linesize']
-
-                cont_graphs[0].SetLineWidth(size)
-
-                cont_graphs[0].SetLineColor(color)
-                #x_min, x_max, y_min, y_max = cont_graphs[0].GetXaxis().GetXmin(), cont_graphs[0].GetXaxis().GetXmax(), cont_graphs[0].GetYaxis().GetXmin(), cont_graphs[0].GetYaxis().GetXmax()
-
-
-                canvas_d['1sg'].append(cont_graphs[0])
-                canvas_d['min'].append(exp)
-                canvas_d['names'].append(operators[op][proc]['name'])
-                canvas_d['n_op'].append(operators[op][proc]['op'])
-                canvas_d['scale'].append([float(operators[op][proc]['xscale']), float(operators[op][proc]['yscale'])])
-
             #create as many canvas as necessary each containing up to 5 contours
             n_ = math.ceil(float(len(canvas_d['1sg']))/5)
-
 
             for idx in range(0,int(n_)):
 
@@ -171,7 +256,7 @@ if __name__ == "__main__":
                 ROOT.gPad.SetLeftMargin(margins)
                 ROOT.gPad.SetBottomMargin(margins)
                 ROOT.gPad.SetTopMargin(margins)
-                ROOT.gPad.SetFrameLineWidth(3)
+                ROOT.gPad.SetFrameLineWidth(5)
                 ROOT.gPad.SetTicks()
 
                 leg = ROOT.TLegend(0.15, 0.8, 0.85, 0.85)
@@ -179,33 +264,48 @@ if __name__ == "__main__":
                 leg.SetNColumns(len(canvas_d['1sg'][ idx*5: (idx*5) + 5]))
                 leg.SetTextSize(0.025)
 
-                linestyles = [1,2,3,5,6] * int(n_)
-                
+                linestyles = [2,7,5,6,4] * int(n_)
+                ROOT.gStyle.SetPalette(ROOT.kVisibleSpectrum)
+                col = ROOT.TColor.GetPalette()
+                step = len(col)/6
+                cols = []
+                for i in range (1,6):
+                    cols.append(col[int(step*i)])
+                cols = cols * int(n_)
 
                 c.SetGrid()
-                y_min_new = canvas_d['1sg'][idx*5].GetYaxis().GetXmin() - abs(0.2*canvas_d['1sg'][idx*5].GetYaxis().GetXmin())
-                y_max_new = canvas_d['1sg'][idx*5].GetYaxis().GetXmax() + abs(0.2*canvas_d['1sg'][idx*5].GetYaxis().GetXmax()) 
+                y_min = canvas_d['1sg'][idx*5].GetYaxis().GetXmin()
+                y_max = canvas_d['1sg'][idx*5].GetYaxis().GetXmax()
+                y_min_new = 1.1*canvas_d['1sg'][idx*5].GetYaxis().GetXmin()
+                y_max_new = 1.1*canvas_d['1sg'][idx*5].GetYaxis().GetXmax() 
+                canvas_d['1sg'][idx*5].GetXaxis().SetLimits(-1, 1)
                 canvas_d['1sg'][idx*5].GetYaxis().SetRangeUser(y_min_new, y_max_new)
                 canvas_d['1sg'][idx*5].GetYaxis().SetTitleOffset(1.5)
                 canvas_d['1sg'][idx*5].GetYaxis().SetTitle(ConvertOptoLatex(op))
                 canvas_d['1sg'][idx*5].GetXaxis().SetTitle("2nd Operator")
                 canvas_d['1sg'][idx*5].SetTitle("")
                 canvas_d['1sg'][idx*5].SetLineStyle(linestyles[0])
+                canvas_d['1sg'][idx*5].SetLineColor(cols[0])
                 canvas_d['1sg'][idx*5].Draw("AL")
-                canvas_d['min'][idx*5].Draw("P")
+                canvas_d['1sg'][idx*5].Draw("P")
 
                 name = ConvertOptoLatex(canvas_d['n_op'][idx*5])
-                if canvas_d['scale'][idx*5][0] != 1: name = str(canvas_d['scale'][idx*5][0]) + " #times " + name
+                if canvas_d['scale'][idx*5] != 1: name = str(canvas_d['scale'][idx*5]) + " #times " + name
 
                 leg.AddEntry(canvas_d['1sg'][idx*5], name, "L")
 
-                for i,j, n, ls, scale in zip(canvas_d['1sg'][idx*5 +1:  (idx*5) + 5], canvas_d['min'][idx*5 +1:  (idx*5) + 5], canvas_d['n_op'][idx*5 +1:  (idx*5) + 5], linestyles[idx*5 +1:  (idx*5) + 5], canvas_d['scale'][idx*5 +1:  (idx*5) + 5]):
+                for i,j, n, ls, col, scale in zip(canvas_d['1sg'][idx*5 +1:  (idx*5) + 5], canvas_d['min'][idx*5 +1:  (idx*5) + 5], canvas_d['n_op'][idx*5 +1:  (idx*5) + 5], linestyles[idx*5 +1:  (idx*5) + 5], cols[idx*5 +1:  (idx*5) + 5], canvas_d['scale'][idx*5 +1:  (idx*5) + 5]):
                     i.SetLineStyle(ls)
+                    i.SetLineColor(col)
                     i.Draw("L same")
                     j.Draw("P same")
-                    name = n 
-                    if scale[0]!=1 : name =  str(scale[0]) + " #times " + n
-                    leg.AddEntry(i, ConvertOptoLatex(name), "L")
+                    if i.GetYaxis().GetXmin() < y_min : 
+                        y_min = i.GetYaxis().GetXmin()
+                    if i.GetYaxis().GetXmax() > y_max :
+                        y_max = i.GetYaxis().GetXmax()
+                    name = ConvertOptoLatex(n) 
+                    if scale !=1 : name =  str(scale) + " #times " + ConvertOptoLatex(n)
+                    leg.AddEntry(i, name, "L")
 
                 #Draw fancy
 
@@ -232,8 +332,11 @@ if __name__ == "__main__":
 
                 leg.Draw()
                 c.Draw()
-                c.Print(args.outf + "/" + op + "/" + op + "{}.pdf".format(idx))
+                c.Print(args.outf + "/" + op + "/r_" + op + "{}.pdf".format(idx))
 
+                canvas_d['1sg'][idx*5].GetYaxis().SetRangeUser(1.1*y_min, 1.1*y_max)
+                c.Draw()
+                c.Print(args.outf + "/" + op + "/" + op + "{}.pdf".format(idx))
         
     else:
 
@@ -314,7 +417,7 @@ if __name__ == "__main__":
                 i[1].Draw("L same")
                 i[2].Draw("P same")
                 name = i[0]
-                #if scale[0]!=1 : name =  str(scale[0]) + " #times " + n
+                #if scale!=1 : name =  str(scale) + " #times " + n
                 leg.AddEntry(i[1], name, "L")
 
             #Draw fancy
@@ -402,7 +505,7 @@ if __name__ == "__main__":
                 i[1].Draw("L same")
                 i[2].Draw("P same")
                 name = i[0]
-                #if scale[0]!=1 : name =  str(scale[0]) + " #times " + n
+                #if scale!=1 : name =  str(scale) + " #times " + n
                 leg.AddEntry(i[1], name, "L")
 
             #Draw fancy
@@ -412,7 +515,7 @@ if __name__ == "__main__":
             tex3.SetTextAlign(31)
             tex3.SetTextFont(42)
             tex3.SetTextSize(0.04)
-            tex3.SetLineWidth(2)
+            tex3.SetLineWidth(3)
             tex3.Draw()
 
             if "process" in plt_options.keys():
@@ -427,7 +530,7 @@ if __name__ == "__main__":
                 tex4.SetTextAlign(31)
                 tex4.SetTextFont(font)
                 tex4.SetTextSize(size)
-                tex4.SetLineWidth(2)
+                tex4.SetLineWidth(3)
                 tex4.Draw()
 
             leg.Draw()
