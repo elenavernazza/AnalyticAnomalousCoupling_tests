@@ -201,7 +201,7 @@ def Retrieve2DLikelihood(operators, op, maxNLL):
         'extr' : [],
     }
 
-    for i in range(len(canvas_d)-1):
+    for i in range(len(canvas_d)):
         for key in canvas_ord.keys():
             if key is not 'base_op':
                 canvas_ord[key].append(canvas_d[i][key])
