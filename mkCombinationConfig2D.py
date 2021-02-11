@@ -47,6 +47,9 @@ if __name__ == "__main__":
     for op in ops:
         
         ls  = glob(args.combo+ "/" + args.prefix + "_" + op + "_*") 
+        if len(ls) == 0:
+            ls  = glob(args.combo+ "/" + args.prefix + "_" + op + "*") 
+
 
         for path in ls:
 
