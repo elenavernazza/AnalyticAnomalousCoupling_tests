@@ -278,7 +278,7 @@ if __name__ == "__main__":
 
                 var_fol_name.append(var_name)
                 os.chdir(cp + "/" + var_name)
-                combine_text = combineCards(processes, wc)
+                combine_text = combineCards(variables[op].keys(), wc)
                 os.system(combine_text)
 
                 for process_ in processes:
