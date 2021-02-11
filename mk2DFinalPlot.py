@@ -256,7 +256,7 @@ if __name__ == "__main__":
                 ROOT.gPad.SetLeftMargin(margins)
                 ROOT.gPad.SetBottomMargin(margins)
                 ROOT.gPad.SetTopMargin(margins)
-                ROOT.gPad.SetFrameLineWidth(5)
+                ROOT.gPad.SetFrameLineWidth(3)
                 ROOT.gPad.SetTicks()
 
                 leg = ROOT.TLegend(0.15, 0.8, 0.85, 0.85)
@@ -265,13 +265,14 @@ if __name__ == "__main__":
                 leg.SetTextSize(0.025)
 
                 linestyles = [2,7,5,6,4] * int(n_)
-                ROOT.gStyle.SetPalette(ROOT.kVisibleSpectrum)
-                col = ROOT.TColor.GetPalette()
-                step = len(col)/6
-                cols = []
-                for i in range (1,6):
-                    cols.append(col[int(step*i)])
-                cols = cols * int(n_)
+#                ROOT.gStyle.SetPalette(ROOT.kRainBow)
+#                col = ROOT.TColor.GetPalette()
+#                step = len(col)/5
+#                cols = []
+#                for i in range (0,5):
+#                    cols.append(col[int(step*i)])
+#                cols = cols * int(n_)
+                cols = [4,433,417,6,2] * int(n_)
 
                 c.SetGrid()
                 y_min = canvas_d['1sg'][idx*5].GetYaxis().GetXmin()
@@ -287,7 +288,7 @@ if __name__ == "__main__":
                 canvas_d['1sg'][idx*5].SetLineStyle(linestyles[0])
                 canvas_d['1sg'][idx*5].SetLineColor(cols[0])
                 canvas_d['1sg'][idx*5].Draw("AL")
-                canvas_d['1sg'][idx*5].Draw("P")
+                canvas_d['min'][idx*5].Draw("P")
 
                 name = ConvertOptoLatex(canvas_d['n_op'][idx*5])
                 if canvas_d['scale'][idx*5] != 1: name = str(canvas_d['scale'][idx*5]) + " #times " + name
