@@ -12,7 +12,7 @@ import argparse
 
 def generateColorDict(ops):
     d = {
-        "histo_sm": 851,
+        "histo_sm": ROOT.kGray, #851,
         "histo_Data": 1,
         "histo_BSM": ROOT.kBlack
     }
@@ -88,9 +88,13 @@ def givecoeff(comp_name, k, model):
     return d[comp_name]
 
 
-def plot_shapes (model, shapes_file, k_min, k_max, step, x_tit, save_name, root):
+def plot_shapes (model, shapes_file, lumi, k_min, k_max, step,
+                    x_tit, save_name, root, channel, logscale):
 
     cpm = PM.CombinePlotManager()
+    cpm.channel = channel
+    if lumi != -1:
+        cpm.lumi = str(lumi) + " fb^{-1}"
 
     #colors = [851, 921, 418, 857, 617, 810, 409, 418]
 
@@ -110,8 +114,11 @@ def plot_shapes (model, shapes_file, k_min, k_max, step, x_tit, save_name, root)
                     ops.append(op)
 
     cd = generateColorDict(ops)
+    custom_palette = [ROOT.kAzure+1, ROOT.kPink-2, ROOT.kTeal+2, ROOT.kOrange+8]
+    #custom_ls = [2,9,8,7,3,6,5]
 
     c = ROOT.TCanvas("c", "c", 800, 800)
+    if logscale : c.SetLogy()
 
     margins = 0.11
     ROOT.gPad.SetRightMargin(margins)
@@ -137,7 +144,8 @@ def plot_shapes (model, shapes_file, k_min, k_max, step, x_tit, save_name, root)
     h_sm.SetTitle("")
     h_sm.GetXaxis().SetTitle(x_tit)
     h_sm.SetFillColor(cd["histo_sm"])
-    Legend.AddEntry(h_sm, "SM")
+    #h_sm.SetFillStyle(3001)
+    Legend.AddEntry(h_sm, "SM", "F")
 
     histos["histo_sm"] =  h_sm
 
@@ -145,8 +153,9 @@ def plot_shapes (model, shapes_file, k_min, k_max, step, x_tit, save_name, root)
     for idx, shap in enumerate(shapes):
         if shap != "histo_sm" and shap != "histo_Data":
             h = f.Get(shap)
-            h.SetLineColor(cd[shap])
-            
+            ## h.SetLineColor(cd[shap])
+            h.SetLineColor(custom_palette.pop(0))
+            ## h.SetLineStyle(custom_ls.pop(0))
             h.SetLineWidth(2)
             h.SetMarkerSize(0)
             h.SetMarkerStyle(0)
@@ -156,23 +165,24 @@ def plot_shapes (model, shapes_file, k_min, k_max, step, x_tit, save_name, root)
             if shap == "histo_sm": 
                 #h.SetFillColor(cd[shap])
                 Legend.AddEntry(h, leg_name)
-            else:
-                Legend.AddEntry(h, leg_name, "L")
+                histos[shap] = h
+            #else:
+                #Legend.AddEntry(h, leg_name, "F")
 
-            histos[shap] = h
+            #histos[shap] = h
+        
+        #elif shap == "histo_Data":
+        #    h = f.Get(shap)
+        #    h.SetLineColor(1)
+        #    h.SetMarkerStyle(8)
+        #    h.SetMarkerColor(1)
+        #    h.SetMarkerSize(1)
 
-        elif shap == "histo_Data":
-            h = f.Get(shap)
-            h.SetLineColor(1)
-            h.SetMarkerStyle(8)
-            h.SetMarkerColor(1)
-            h.SetMarkerSize(1)
+        #    leg_name = "Data"
+        #    h.Draw("hist same")
+        #    Legend.AddEntry(h, leg_name)
 
-            leg_name = "Data"
-            h.Draw("hist same")
-            Legend.AddEntry(h, leg_name)
-
-            histos[shap] = h
+        #    histos[shap] = h
 
     ks = np.arange(k_min, k_max, step)
     if len(ks) > 4: Legend.SetNColumns(3)
@@ -193,16 +203,17 @@ def plot_shapes (model, shapes_file, k_min, k_max, step, x_tit, save_name, root)
                 fact = givecoeff(type_, k, model)
                 h_ = deepcopy(histos[sh])
                 h_.Scale(fact)
-                h_bsm.Add(h_)
-
-        h_bsm.SetLineColor(bsm_cols[j*st_])
+                h_bsm.Add(h_) 
+        #h_bsm.SetLineColor(bsm_cols[j*st_])
+        h_bsm.SetLineColor(custom_palette.pop(0))
+        #h_bsm.SetLineStyle(custom_ls.pop(0))
         h_bsm.SetMarkerSize(0)
         h_bsm.SetMarkerStyle(0)
         h_bsm.SetLineWidth(2)
         h_bsm.GetYaxis().SetTitle("Events")
         h_bsm.SetTitle("")
         h_bsm.GetXaxis().SetTitle(x_tit)
-        Legend.AddEntry(h_bsm, "BSM k={:.3f}".format(k))
+        Legend.AddEntry(h_bsm, "BSM k={:.3f}".format(k), "F")
         histos["BSM{:.3f}".format(k)] = h_bsm
 
     min_ = 0
@@ -241,12 +252,18 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Command line parser')
     parser.add_argument('--baseFolder', dest='baseFolder', help='Base folder containing all shapes', required=True)
+    parser.add_argument('--lumi', dest='lumi', help='Integrated luminosity /fb', type=float, default=-1, required=False)
+    parser.add_argument('--vv', dest='vv', help='Scattered EWK bosons', default='VV', required=False)
+    parser.add_argument('--prod', dest='prod', help='EWK bosons products', default='products', required=False)
     parser.add_argument('--kmin', dest='kmin', help='Min for the Wilson coefficient', type=float, required=True)
     parser.add_argument('--kmax', dest='kmax', help='Max for the Wilson coefficient', type=float, required=True)
     parser.add_argument('--kstep', dest='kstep', help='Step between min and max', type=float, required=True)
     parser.add_argument('--prefix', dest='prefix', help='Prefix of operators folders contained in baseFolder', default='to_Latinos', required=False)
     parser.add_argument('--root', dest='root', help='Save also .root files', default=False, action='store_true', required=False)
+    parser.add_argument('--logy', dest='logy', help='Log scale on y axis', default=False, action='store_true', required=False)
     args = parser.parse_args()
+
+    channel = args.vv + ' #rightarrow ' + args.prod + ' [EWK]'
 
     baseDirIn = os.path.abspath(args.baseFolder).rstrip('/')
     baseDirOut = baseDirIn + '_ShapesPlots'
@@ -298,5 +315,5 @@ if __name__ == '__main__':
                 x_title = x_title.replace('phi','#phi')
                 if any(x in var.lower() for x in ['mjj','mll', 'pt', 'met']):
                     x_title = x_title + ' [GeV]'
-                plot_shapes (modelName, histos, args.kmin, args.kmax, args.kstep,
-                                x_title , varFileOut, args.root)
+                plot_shapes (modelName, histos, args.lumi, args.kmin, args.kmax,
+                        args.kstep, x_title , varFileOut, args.root, channel, args.logy)
