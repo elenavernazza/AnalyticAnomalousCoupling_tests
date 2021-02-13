@@ -79,6 +79,9 @@ if __name__ == '__main__':
     parser.add_argument('--out', dest='out', help='outfolder path', required=False, default = "distributions")
     parser.add_argument('--linscale', dest='linscale', help='Scale linear component in the plot', required=False, default = "1")
     parser.add_argument('--quadscale', dest='quadscale', help='Scale quadratic component in the plot', required=False, default = "1")
+    parser.add_argument('--drawstat', dest='drawstat', help='Draw sedcond pair of plots with SM stat unc', required=False, action="store_true", default=False)
+    parser.add_argument('--ymaxdigits', dest='ymaxdigits', help='Argument on y axis MaxDigits', required=False, default = "3")
+    parser.add_argument('--xposchannel', dest='xposchannel', help='xposition of the channel label on the upper left corner', required=False, default = "0.42")
 
     args = parser.parse_args()
 
@@ -96,6 +99,9 @@ if __name__ == '__main__':
     lin_scale = float(args.linscale)
     quad_scale = float(args.quadscale)
     model = args.model
+    maxd = int(args.ymaxdigits)
+
+    xpos_proc = float(args.xposchannel)
 
     #suppose one single shape file for variable folder:
 
@@ -180,6 +186,7 @@ if __name__ == '__main__':
                 h_sm.GetYaxis().SetTitleSize(0.05)
                 h_sm.GetYaxis().SetLabelSize(0.05)
                 h_sm.GetYaxis().SetTitleOffset(1)
+                h_sm.GetYaxis().SetMaxDigits(maxd)
                 h_sm.Draw("hist")
 
                 h_quad.SetLineColor(GetColor("quad"))
@@ -233,7 +240,7 @@ if __name__ == '__main__':
                 tex3.Draw()
 
 
-                tex4 = ROOT.TLatex(0.41,.915, GetProcess(the_process))
+                tex4 = ROOT.TLatex(xpos_proc,.915, GetProcess(the_process))
                 tex4.SetNDC()
                 tex4.SetTextAlign(31)
                 tex4.SetTextFont(42)
@@ -258,12 +265,12 @@ if __name__ == '__main__':
 
                 h_bsm_r[0].GetYaxis().SetTitle("SM / BSM")
                 h_bsm_r[0].GetYaxis().SetTitleSize(0.1)
-                h_bsm_r[0].GetYaxis().SetTitleOffset(0.4)
+                h_bsm_r[0].GetYaxis().SetTitleOffset(0.5)
                 h_bsm_r[0].GetYaxis().SetNdivisions(4)
 
                 h_bsm_r[0].GetXaxis().SetTitle(convertName(var_n))
                 h_bsm_r[0].GetXaxis().SetTitleSize(0.13)
-                h_bsm_r[0].GetYaxis().SetLabelSize(0.05)
+                h_bsm_r[0].GetYaxis().SetLabelSize(0.08)
                 h_bsm_r[0].GetXaxis().SetLabelSize(0.1)
 
                 h_bsm_r[0].Draw("hist")
@@ -281,6 +288,146 @@ if __name__ == '__main__':
                 c.Print(args.out + "/" + op + "_" + var_n + ".pdf")
                 c.Print(args.out + "/" + op + "_" + var_n + ".png")
                 if args.root: c.Print(args.out + "/" + op + "_" + var_n + ".root")
+
+
+                #Now draw the same but with uncertainties on the sm
+                if args.drawstat:
+                    c1 = ROOT.TCanvas("c_{}_stat".format(op), "c_{}_stat".format(op), 700, 800)
+                    ROOT.gPad.SetFrameLineWidth(3)
+
+                    pad3 = ROOT.TPad("pad3", "pad3", 0, 0.3, 1, 1)
+                    pad3.SetFrameLineWidth(2)
+                    pad3.SetBottomMargin(0.005)
+                    pad3.Draw()
+
+                    pad4 = ROOT.TPad("pad4", "pad4", 0, 0.0, 1, 0.3)
+                    pad4.SetFrameLineWidth(2)
+                    pad4.SetTopMargin(0.05)
+
+                    pad4.SetFrameBorderMode(0)
+                    pad4.SetBorderMode(0)
+                    pad4.SetBottomMargin(0.4)
+                    pad4.Draw()
+
+
+                    pad3.cd()
+
+                    h_err = deepcopy(h_sm)
+                    h_err.Sumw2()
+                    h_err.SetMarkerSize(0)
+                    h_err.SetFillColor(ROOT.kBlack)
+                    h_err.SetFillStyle(3004)
+
+                    h_sm.Draw("hist")
+                    h_quad.Draw("hist same")
+                    h_lin.Draw("hist same")
+                    h_err.Draw("E2 same")
+
+                    for i,j in enumerate(h_bsm):
+                        j.Draw("hist same")
+                    
+                    if legpos == 1:
+                        leg1 = ROOT.TLegend(0.15, 0.51, 0.4, 0.86)
+                    elif legpos == 2:
+                        leg1 = ROOT.TLegend(0.6, 0.5, 0.89, 0.86)
+                    leg1.SetBorderSize(0)
+                    leg1.SetNColumns(1)
+                    leg1.SetTextSize(0.025)
+
+                    leg1.AddEntry(h_sm, "SM", "F")
+                    leg1.AddEntry(h_err, "SM Stat. Unc.", "F")
+
+                    if quad_scale != 1:
+                        leg1.AddEntry(h_quad, "Quad {} #times {}".format(op, quad_scale), "F")
+                    else:
+                        leg1.AddEntry(h_quad, "Quad {}".format(op), "F")
+                        
+                    if lin_scale != 1:
+                        leg1.AddEntry(h_lin, "Lin {} #times {}".format(op, lin_scale), "F")
+                    else:
+                        leg1.AddEntry(h_lin, "Lin {}".format(op), "F")
+
+                    for i,j in zip(h_bsm, ks):
+                        leg1.AddEntry(i, "SM + EFT {}={}".format(op, j), "F")
+
+                    leg1.Draw()
+
+                    #Fancy stuffs
+                    tex5 = ROOT.TLatex(0.90,.915,"100 fb^{-1}   (13 TeV)")
+                    tex5.SetNDC()
+                    tex5.SetTextAlign(31)
+                    tex5.SetTextFont(42)
+                    tex5.SetTextSize(0.06)
+                    tex5.SetLineWidth(3)
+                    tex5.Draw()
+
+
+                    tex6 = ROOT.TLatex(xpos_proc,.915, GetProcess(the_process))
+                    tex6.SetNDC()
+                    tex6.SetTextAlign(31)
+                    tex6.SetTextFont(42)
+                    tex6.SetTextSize(0.06)
+                    tex6.SetLineWidth(3)
+                    tex6.Draw()
+
+                    pad4.cd()
+
+                    h_bsm_ratio_err = deepcopy(h_sm)
+                    h_bsm_ratio_err.Divide(h_sm)
+                    h_bsm_ratio_err.Sumw2()
+                    h_bsm_ratio_err.SetFillColor(ROOT.kBlack)
+                    h_bsm_ratio_err.SetFillStyle(3004)
+
+
+                    h_bsm_r_2 = []
+                    for i in h_bsm_r:
+                        h_ = deepcopy(i)
+                        h_.SetMarkerSize(2)
+                        h_.SetMarkerColor(ROOT.kWhite)
+                        #h_.SetLineColor(ROOT.kWhite)
+                        #h_.SetLineWidth(2)
+                        h_bsm_r_2.append(h_)
+
+
+                    h_bsm_ratio_err.GetYaxis().SetRangeUser(0.5,1.5)
+                    h_bsm_ratio_err.GetYaxis().SetTitle("SM / BSM")
+                    h_bsm_ratio_err.GetYaxis().SetTitleSize(0.1)
+                    h_bsm_ratio_err.GetYaxis().SetTitleOffset(0.4)
+                    h_bsm_ratio_err.GetYaxis().SetNdivisions(4)
+
+                    h_bsm_ratio_err.GetXaxis().SetTitle(convertName(var_n))
+                    h_bsm_ratio_err.GetXaxis().SetTitleSize(0.13)
+                    h_bsm_ratio_err.GetYaxis().SetLabelSize(0.08)
+                    h_bsm_ratio_err.GetXaxis().SetLabelSize(0.1)
+
+                    h_bsm_ratio_err.Draw("E2")
+
+                    l = ROOT.TLine(h_bsm_ratio_err.GetXaxis().GetXmin(), 1, h_bsm_ratio_err.GetXaxis().GetXmax(), 1)
+                    l.SetLineColor(ROOT.kBlack)
+                    l.SetLineWidth(1)
+                    l.Draw("same")
+
+                    #first draw white histos
+                    for i in h_bsm_r_2:
+                        i.Draw("P same")
+                        i.Draw("hist same")
+
+                    #then draw colored histos
+                    for j,i in enumerate(h_bsm_r):
+                        i.SetFillStyle(0)
+                        i.SetMarkerStyle(8)
+                        i.SetMarkerSize(1)
+                        i.SetMarkerColor(GetColor("BSM")[j])
+                        
+                        i.Draw("P same")
+                        i.Draw("hist same")
+
+
+                    c1.Update()
+                    c1.Draw()
+                    c1.SaveAs(args.out + "/" + op + "_" + var_n + "_stat.pdf")
+                    c1.SaveAs(args.out + "/" + op + "_" + var_n + "_stat.png")
+                    if args.root: c1.SaveAs(args.out + "/" + op + "_" + var_n + "_stat.root")
 
             #finally copy the index in here:
             os.system("cp /afs/cern.ch/user/g/gboldrin/index.php " + args.out)
