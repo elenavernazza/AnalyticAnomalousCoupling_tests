@@ -63,6 +63,8 @@ def convertName(name):
         "deltaetajj": "#Delta#eta_{jj}",
         "etaj1" : "#eta_{j1}",
         "etaj2" : "#eta_{j2}",
+        "mee"   : "m_{ee}",
+        "ptee"  : "p_T^{ee}",
         "etal1" : "#eta_{l1}",
         "etal2" : "#eta_{l2}",
         " ": None
@@ -284,9 +286,9 @@ if __name__ == "__main__":
             #         best_v = (k+z+l+m)/2
             #         best_index = count
             #     count += 1
-            for k in one_inf:
-                if k < best_v:
-                    best_v = k
+            for k,z in zip(one_inf,one_sup):
+                if k+z < best_v:
+                    best_v = k+z
                     best_index = count
                 count += 1
 
@@ -348,7 +350,7 @@ if __name__ == "__main__":
         two_s = best[model]["two_s"]
         best_fit = best[model]["best"]
 
-        two_s, one_s, ops, best_fit, vars_ = zip(*sorted(zip(two_s, one_s, ops, best_fit, vars_)))
+        one_s, two_s, ops, best_fit, vars_ = zip(*sorted(zip(one_s, two_s, ops, best_fit, vars_)))
 
          #saving results to txt
         print("[MODEL RESULTS] {}".format(model))
