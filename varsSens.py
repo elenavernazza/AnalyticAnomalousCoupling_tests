@@ -284,9 +284,9 @@ if __name__ == "__main__":
             #         best_v = (k+z+l+m)/2
             #         best_index = count
             #     count += 1
-            for k,z in zip(one_inf, one_sup):
-                if k+z < best_v:
-                    best_v = k+z
+            for k in one_inf:
+                if k < best_v:
+                    best_v = k
                     best_index = count
                 count += 1
 
