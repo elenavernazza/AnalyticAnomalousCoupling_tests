@@ -177,7 +177,9 @@ def Retrieve2DLikelihood(operators, op, maxNLL):
 
         print(operators[op][proc]['op'],op)
         color = operators[op][proc]['linecolor']
+        lines = operators[op][proc]['linesize']
         cont_graphs[0].SetLineWidth(4)
+        cont_graphs[0].SetLineColor(color)
 
         canvas_d.append({
             '1sg' : cont_graphs[0],
@@ -207,6 +209,62 @@ def Retrieve2DLikelihood(operators, op, maxNLL):
                 canvas_ord[key].append(canvas_d[i][key])
 
     return canvas_ord
+
+
+def Retrieve2DLikelihoodCombined(file, op, maxNLL, xscale, yscale):
+
+    f = ROOT.TFile(file)
+    t = f.Get("limit")
+
+    for i, event in enumerate(t):
+        if i == 0:
+            x_min = getattr(event, "k_" + op[0])
+            y_min = getattr(event, "k_" + op[1])
+
+        else: break
+
+    exp = ROOT.TGraph()
+    exp.SetPoint(0, x_min, y_min)
+    exp.SetMarkerSize(3)
+    exp.SetMarkerStyle(34)
+    exp.SetMarkerColor(ROOT.kGray +2)
+
+    to_draw = ROOT.TString("{}:{}:2*deltaNLL".format("k_" + op[0], "k_" + op[1]))
+    n = t.Draw( to_draw.Data() , "deltaNLL<{} && deltaNLL>{}".format(float(maxNLL),-30), "l")
+
+    x = np.ndarray((n), 'd', t.GetV1())
+    y = np.ndarray((n), 'd', t.GetV2())
+    z_ = np.ndarray((n), 'd', t.GetV3())
+
+    z = np.array([i-min(z_) for i in z_]) #shifting likelihood toward 0
+    x = np.array([i*xscale for i in x])
+    y = np.array([i*yscale for i in y])
+
+    graphScan = ROOT.TGraph2D(n,x,y,z)
+
+    graphScan.SetNpx(100)
+    graphScan.SetNpy(100)
+
+    graphScan.GetZaxis().SetRangeUser(0, float(maxNLL))
+    graphScan.GetHistogram().GetZaxis().SetRangeUser(0, float(maxNLL))
+
+    for i in range(graphScan.GetHistogram().GetSize()):
+        if (graphScan.GetHistogram().GetBinContent(i+1) == 0):
+            graphScan.GetHistogram().SetBinContent(i+1, 100)
+
+    hist = graphScan.GetHistogram().Clone("arb_hist")
+    hist.SetContour(2, np.array([2.30, 5.99]))
+    hist.Draw("CONT Z LIST")
+    ROOT.gPad.Update()
+
+    conts = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
+    cont_graphs = [deepcopy(conts.At(i).First()) for i in range(2)]
+
+    gs = deepcopy(graphScan)
+
+    f.Close()
+
+    return gs, cont_graphs, exp
 
 
 def mkdir(path):
@@ -272,16 +330,17 @@ if __name__ == "__main__":
 #                for i in range (0,5):
 #                    cols.append(col[int(step*i)])
 #                cols = cols * int(n_)
-                cols = [4,433,417,6,2] * int(n_)
+                #cols = [4,433,417,6,2] * int(n_)
+                cols = [ROOT.kAzure+1, ROOT.kGray+2, ROOT.kViolet-4, ROOT.kSpring+9, ROOT.kOrange+10]* int(n_)
 
                 c.SetGrid()
                 y_min = canvas_d['1sg'][idx*5].GetYaxis().GetXmin()
                 y_max = canvas_d['1sg'][idx*5].GetYaxis().GetXmax()
                 y_min_new = 1.1*canvas_d['1sg'][idx*5].GetYaxis().GetXmin()
-                y_max_new = 1.1*canvas_d['1sg'][idx*5].GetYaxis().GetXmax() 
+                y_max_new = 1.3*canvas_d['1sg'][idx*5].GetYaxis().GetXmax() 
                 canvas_d['1sg'][idx*5].GetXaxis().SetLimits(-1, 1)
-                canvas_d['1sg'][idx*5].GetYaxis().SetRangeUser(y_min_new, y_max_new)
-                canvas_d['1sg'][idx*5].GetYaxis().SetTitleOffset(1.5)
+                canvas_d['1sg'][idx*5].GetYaxis().SetRangeUser(y_min_new, y_max_new) #add legend space
+                canvas_d['1sg'][idx*5].GetYaxis().SetTitleOffset(1.6)
                 canvas_d['1sg'][idx*5].GetYaxis().SetTitle(ConvertOptoLatex(op))
                 canvas_d['1sg'][idx*5].GetXaxis().SetTitle("2nd Operator")
                 canvas_d['1sg'][idx*5].SetTitle("")
@@ -323,10 +382,12 @@ if __name__ == "__main__":
                     else: xpos = plt_options['xpos']
                     if 'size' not in  plt_options.keys(): size = 0.04
                     else: size = plt_options['size']
+                    if 'font' not in  plt_options.keys(): font = 42
+                    else: font = plt_options['font']
                     tex4 = ROOT.TLatex(xpos,.89,plt_options['process'])
                     tex4.SetNDC()
                     tex4.SetTextAlign(31)
-                    tex4.SetTextFont(42)
+                    tex4.SetTextFont(font)
                     tex4.SetTextSize(size)
                     tex4.SetLineWidth(2)
                     tex4.Draw()
@@ -335,13 +396,15 @@ if __name__ == "__main__":
                 c.Draw()
                 c.Print(args.outf + "/" + op + "/r_" + op + "{}.pdf".format(idx))
 
-                canvas_d['1sg'][idx*5].GetYaxis().SetRangeUser(1.1*y_min, 1.1*y_max)
+                canvas_d['1sg'][idx*5].GetYaxis().SetRangeUser(1.1*y_min, 1.2*y_max)
                 c.Draw()
                 c.Print(args.outf + "/" + op + "/" + op + "{}.pdf".format(idx))
         
     else:
 
         for op_pair in operators.keys():
+
+            print("[INFO]: Generating plots for {}".format(op_pair))
 
             #mkdir(args.outf + "/" + op_pair)
 
@@ -356,19 +419,19 @@ if __name__ == "__main__":
             
             #cycling on all the channels in the cfg
             for key in channels:
+                print("... Retrieving channel {} ...".format(key))
 
                 #extrapolate gs (the full 2d scan), contours (2 graphs [1sigma and 2 sigma])
                 # and the minimum (0,0) by construction
-                gs, cont_graphs, exp = Retrieve2DLikelihood(operators[op_pair][key]['path'], 
-                                                                [op_x, op_y], args.maxNLL, 
-                                                                        1., 1. )
+                gs, cont_graphs, exp = Retrieve2DLikelihoodCombined(operators[op_pair][key]['path'], 
+                                                                [op_x, op_y], args.maxNLL, 1., 1.)
 
 
                 min_x, max_x = cont_graphs[0].GetXaxis().GetXmin(), cont_graphs[0].GetXaxis().GetXmax() 
                 min_y, max_y = cont_graphs[0].GetYaxis().GetXmin(), cont_graphs[0].GetYaxis().GetXmax() 
 
                 #set style
-                cont_graphs[0].SetLineWidth(3)
+                cont_graphs[0].SetLineWidth(4)
 
                 
 
@@ -418,6 +481,7 @@ if __name__ == "__main__":
                 i[1].Draw("L same")
                 i[2].Draw("P same")
                 name = i[0]
+                if name == "combined": name = "Combined"
                 #if scale!=1 : name =  str(scale) + " #times " + n
                 leg.AddEntry(i[1], name, "L")
 
@@ -448,7 +512,8 @@ if __name__ == "__main__":
 
             leg.Draw()
             c.Draw()
-            c.Print(args.outf + "/" + "_".join(i for i in channels) + "_" + op_pair + ".pdf")
+            c.Print(args.outf + "/" + op_pair + ".pdf")
+            c.Print(args.outf + "/" + op_pair + ".png")
 
 
             #unzoomed version
@@ -506,6 +571,7 @@ if __name__ == "__main__":
                 i[1].Draw("L same")
                 i[2].Draw("P same")
                 name = i[0]
+                if name == "combined": name = "Combined"
                 #if scale!=1 : name =  str(scale) + " #times " + n
                 leg.AddEntry(i[1], name, "L")
 
@@ -537,5 +603,8 @@ if __name__ == "__main__":
             leg.Draw()
             c.Draw()
             c.Print(args.outf + "/" + op_pair + "_unzoomed.pdf")
+            c.Print(args.outf + "/" + op_pair + "_unzoomed.png")
+
+    os.system("cp /afs/cern.ch/user/g/gboldrin/index.php " + args.outf)
 
 

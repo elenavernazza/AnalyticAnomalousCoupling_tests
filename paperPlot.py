@@ -141,6 +141,7 @@ if __name__ == '__main__':
 
                     h_bsm[i].Add(h_l)
                     h_bsm[i].Add(h_q)
+                    print("k = {}, bsm min: {}".format(j, h_bsm[i].GetMinimum()))
 
                 h_lin.Scale(lin_scale)
                 h_quad.Scale(quad_scale)
@@ -175,7 +176,7 @@ if __name__ == '__main__':
                 if y_min > 0: y_min = 0
                 y_min = y_min - 0.1 * abs(y_min)
 
-                y_max = h_sm.GetMaximum() + 0.3* h_sm.GetMaximum()
+                y_max = h_sm.GetMaximum() + 0.4* h_sm.GetMaximum()
 
                 h_sm.SetTitle("")
                 h_sm.GetYaxis().SetRangeUser(y_min, y_max)
@@ -392,7 +393,7 @@ if __name__ == '__main__':
                     h_bsm_ratio_err.GetYaxis().SetRangeUser(0.5,1.5)
                     h_bsm_ratio_err.GetYaxis().SetTitle("SM / BSM")
                     h_bsm_ratio_err.GetYaxis().SetTitleSize(0.1)
-                    h_bsm_ratio_err.GetYaxis().SetTitleOffset(0.4)
+                    h_bsm_ratio_err.GetYaxis().SetTitleOffset(0.5)
                     h_bsm_ratio_err.GetYaxis().SetNdivisions(4)
 
                     h_bsm_ratio_err.GetXaxis().SetTitle(convertName(var_n))

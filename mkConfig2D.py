@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     file_ = open(args.out, 'w')
 
-    colors = [ROOT.kAzure+10, ROOT.kOrange-3, ROOT.kViolet-2, ROOT.kGreen+2, ROOT.kRed]
+    colors = [ROOT.kAzure+1, ROOT.kGray+2, ROOT.kViolet-4, ROOT.kSpring+9, ROOT.kOrange+10]
     COLORS = colors * 100 #maybe a waste but repeat the colors 
 
     #operators
@@ -57,6 +57,8 @@ if __name__ == "__main__":
 
             s_op = [i for i in ops if i != op]
 
+            if idx > 4: idx = idx - 5
+
             #process second op
             file_.write("operators['{}']['{}'] = OrderedDict()\n".format(op, s_op[0]))
 
@@ -71,7 +73,7 @@ if __name__ == "__main__":
             file_.write("operators['{}']['{}']['xscale'] = 1\n".format(op, s_op[0]))
             file_.write("operators['{}']['{}']['yscale'] = 1\n".format(op, s_op[0]))
             file_.write("operators['{}']['{}']['linecolor'] = {}\n".format(op, s_op[0], COLORS[idx]))
-            file_.write("operators['{}']['{}']['linesize'] = 3\n".format(op, s_op[0]))
+            file_.write("operators['{}']['{}']['linesize'] = 4\n".format(op, s_op[0]))
             file_.write("\n")
 
             #second op

@@ -19,8 +19,8 @@ if __name__ == "__main__":
 
     parser.add_argument('--model',     dest='model',     help='target folder model name', required = True)
 
-    parser.add_argument('--colors',     dest='colors',     help='Colors for each channel, last one is the combination', required = False, default = "870,797,829,909,1")
-    parser.add_argument('--linestyles',     dest='linestyles',     help='Linestyle for each channel, last one is the combination', required = False, default = "2,3,5,6,1")
+    parser.add_argument('--colors',     dest='colors',     help='Colors for each channel, last one is the combination', required = False, default = "870,797,829,909,797,909,1")
+    parser.add_argument('--linestyles',     dest='linestyles',     help='Linestyle for each channel, last one is the combination', required = False, default = "2,3,5,6,3,6,1")
 
     parser.add_argument('--out',     dest='out',     help='output name', required = True)
     parser.add_argument('--verbose',     dest='verbose',     help='verbosity', required = False, default = False, action = "store_true")
@@ -80,11 +80,12 @@ if __name__ == "__main__":
                     ch_var = (ch_var.strip(" ")).split(" ")
                     for i in ch_var:
                         if i != '' and i != "\n":
-                            all_vars.append(i.strip("\n").split("_"))
+                            all_vars.append([i.strip("\n").split("_")[0], "_".join(i.strip("\n").split("_")[1:])]) #in case of variables with underscores
                     break
 
             channels = [i[0] for i in all_vars]
             bestv = [i[1] for i in all_vars]
+
 
             if not all([i for i in channels for i in args.ch]): sys.exit("[ERROR] not all channels in datacards are specified in input")
             

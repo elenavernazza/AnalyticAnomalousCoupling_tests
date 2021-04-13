@@ -216,7 +216,11 @@ if __name__ == "__main__":
                     exp.SetMarkerColor(ROOT.kRed)
 
                     conts = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
-                    cont_graphs = [conts.At(i).First() for i in range(2)]
+                    # The following will be cont_graphs =  [ROOT.TList, ROOT.TList]
+                    # wheree 2 is defined by the two levels (2.3, 5.99). Each TList
+                    # contains a bunch of TGraphs corresponding to the isoleveel curves (maybe more than 1)
+                    cont_graphs = [conts.At(i) for i in range(len(conts))] 
+    
                     colors = [ROOT.kRed, ROOT.kRed]
                     linestyle = [1, 7]
 
@@ -231,17 +235,21 @@ if __name__ == "__main__":
                     leg = ROOT.TLegend(0.82, 0.85, 0.67, 0.7)
                     leg.AddEntry(exp, "Best Fit", "P")
 
-                    for i, item in enumerate(cont_graphs):
-                        try:
-                            item.SetLineColor(colors[i])
-                            item.GetXaxis().SetTitle(op[0])
-                            item.GetYaxis().SetTitle(op[1])
-                            item.SetLineStyle(linestyle[i])
-                            item.SetLineWidth(2)
-                            item.Draw("L same")
-                            leg.AddEntry(item, "#pm {}#sigma".format(i+1), "L")
-                        except:
-                            continue
+                    for i, item_ in enumerate(cont_graphs):
+                        # item_ here is a TList
+                        l = list(item_)
+                        for item in l:
+                            try:
+                                item.SetLineColor(colors[i])
+                                item.GetXaxis().SetTitle(op[0])
+                                item.GetYaxis().SetTitle(op[1])
+                                item.SetLineStyle(linestyle[i])
+                                item.SetLineWidth(2)
+                                item.Draw("L same")
+                            except:
+                                continue
+                        #only add one legend entry, arbitrary
+                        leg.AddEntry(l[0], "#pm {}#sigma".format(i+1), "L")
 
                     exp.Draw("P same")
                     leg.Draw()

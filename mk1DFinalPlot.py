@@ -24,7 +24,7 @@ def ConvertOptoLatex(op):
         'cll': 'Q_{ll}',
         'cll1': 'Q_{ll}\'',
         'cqq1': 'Q_{qq}^{(1)}',
-        'cqq11': 'Q_{qq}^{(1)}\'',
+        'cqq11': 'Q_{qq}^{(1,1)}',
         'cHl1': 'Q_{Hl}^{(1)}',
         'cHl3': 'Q_{Hl}^{(3)}',
         'cHq1': 'Q_{Hq}^{(1)}',
@@ -33,7 +33,7 @@ def ConvertOptoLatex(op):
         'cHu': 'Q_{Hu}',
         'cHd': 'Q_{Hd}',
         'cqq3': 'Q_{qq}^{(3)}',
-        'cqq31': 'Q_{qq}^{(3)}\'',
+        'cqq31': 'Q_{qq}^{(3,1)}',
 
     }
 
@@ -252,9 +252,9 @@ if __name__ == "__main__":
 
             #first graph
             graphs[0][1].GetYaxis().SetTitleOffset(1.1)
-            graphs[0][1].GetYaxis().SetTitleSize(0.15)
+            #graphs[0][1].GetYaxis().SetTitleSize(0.05)
             graphs[0][1].GetXaxis().SetTitleOffset(1.1)
-            graphs[0][1].GetXaxis().SetTitleSize(0.15)
+            #graphs[0][1].GetXaxis().SetTitleSize(0.05)
             graphs[0][1].SetTitle("")
             graphs[0][1].Draw("AL")
 
