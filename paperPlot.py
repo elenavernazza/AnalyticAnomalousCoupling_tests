@@ -8,6 +8,18 @@ from array import array
 from glob import glob
 import argparse
 
+#creating colors... apparently this is the only way
+clin = ROOT.TColor.GetFreeColorIndex()
+col1 = ROOT.TColor(clin, 0.44213725, 0.05882353, 0.4745098)
+cquad = ROOT.TColor.GetFreeColorIndex()
+col2 = ROOT.TColor(cquad, 0.05882352941, 0.29803921568, 0.36078431372)
+ceft1 = ROOT.TColor.GetFreeColorIndex()
+col3 = ROOT.TColor(ceft1, 0.85490196078, 0.2431372549, 0.32156862745)
+ceft2 = ROOT.TColor.GetFreeColorIndex()
+col4 = ROOT.TColor(ceft2, 0.98431372549, 0.54509803921, 0.14117647058)
+ceft3 = ROOT.TColor.GetFreeColorIndex()
+col5 = ROOT.TColor(ceft3, 0.39215686274, 0.55294117647, 0.89803921568)
+
 def GetProcess(proc):
 
     d = {
@@ -21,15 +33,19 @@ def GetProcess(proc):
 
     return d[proc]
 
-def GetColor(name):
+def GetColor():
+
     d = {
         'sm': ROOT.kGray,
-        'lin': ROOT.kRed-4,
-        'quad': ROOT.kGreen+2,
-        'BSM': [ROOT.kOrange-3, ROOT.kAzure+1, ROOT.kPink+6],
+        #'lin': ROOT.kRed-4,
+        #'quad': ROOT.kGreen+2,
+        #'BSM': [ROOT.kOrange-3, ROOT.kAzure+1, ROOT.kPink+6],
+        'lin': clin,
+        'quad': cquad,
+        'BSM': [ceft1, ceft2, ceft3],
     }
 
-    return d[name]
+    return d
 
 def convertName(name):
     d = {
@@ -88,6 +104,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     ROOT.gROOT.SetBatch(1)
+
+    d = GetColor()
 
     ks = [float(i) for i in args.ks.split(",")]
     legpos = int(args.legpos)
@@ -188,7 +206,7 @@ if __name__ == '__main__':
 
 
             pad1.cd()
-            h_sm.SetFillColor(GetColor("sm"))
+            h_sm.SetFillColor(d["sm"])
             h_sm.SetLineColor(0)
 
             #take as inf the minimum lin. If > 0 then min = 0
@@ -211,29 +229,29 @@ if __name__ == '__main__':
             h_sm.GetYaxis().SetMaxDigits(maxd)
             h_sm.Draw("hist")
 
-            h_quad.SetLineColor(GetColor("quad"))
+            h_quad.SetLineColor(d["quad"])
             h_quad.SetLineWidth(3)
             h_quad.SetLineStyle(7)
             h_quad.Draw("hist same")
 
 
-            h_lin.SetLineColor(GetColor("lin"))
+            h_lin.SetLineColor(d["lin"])
             h_lin.SetLineWidth(3)
             h_lin.SetLineStyle(7)
             h_lin.Draw("hist same")
 
             for i,j in enumerate(h_bsm):
-                j.SetLineColor(GetColor("BSM")[i])
+                j.SetLineColor(d["BSM"][i])
                 j.SetLineWidth(3)
                 j.Draw("hist same")
             
             if legpos == 1:
-                leg = ROOT.TLegend(0.15, 0.55, 0.4, 0.86)
+                leg = ROOT.TLegend(0.15, 0.55, 0.49, 0.86)
             elif legpos == 2:
-                leg = ROOT.TLegend(0.6, 0.5, 0.89, 0.86)
+                leg = ROOT.TLegend(0.55, 0.5, 0.9, 0.86)
             leg.SetBorderSize(0)
             leg.SetNColumns(1)
-            leg.SetTextSize(0.045)
+            leg.SetTextSize(0.04)
 
             leg.AddEntry(h_sm, "SM", "F")
 
@@ -279,7 +297,7 @@ if __name__ == '__main__':
                 h_.Divide(h_bsm[i])
 
                 h_.SetFillColor(0)
-                h_.SetLineColor(GetColor("BSM")[i])
+                h_.SetLineColor(d["BSM"][i])
                 h_.SetLineWidth(2)
                 h_bsm_r.append(h_)
 
@@ -349,12 +367,12 @@ if __name__ == '__main__':
                     j.Draw("hist same")
                 
                 if legpos == 1:
-                    leg1 = ROOT.TLegend(0.15, 0.51, 0.4, 0.86)
+                    leg1 = ROOT.TLegend(0.15, 0.51, 0.49, 0.86)
                 elif legpos == 2:
-                    leg1 = ROOT.TLegend(0.6, 0.5, 0.89, 0.86)
+                    leg1 = ROOT.TLegend(0.55, 0.5, 0.89, 0.86)
                 leg1.SetBorderSize(0)
                 leg1.SetNColumns(1)
-                leg1.SetTextSize(0.045)
+                leg1.SetTextSize(0.04)
 
                 leg1.AddEntry(h_sm, "SM", "F")
                 leg1.AddEntry(h_err, "SM Stat. Unc.", "F")
@@ -439,7 +457,7 @@ if __name__ == '__main__':
                     i.SetFillStyle(0)
                     i.SetMarkerStyle(8)
                     i.SetMarkerSize(1)
-                    i.SetMarkerColor(GetColor("BSM")[j])
+                    i.SetMarkerColor(d["BSM"][j])
                     
                     i.Draw("P same")
                     i.Draw("hist same")
