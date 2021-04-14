@@ -50,12 +50,24 @@ def createOpRange(config):
         or_ = config.getlist("eft", "fitranges")
         return dict( (i.split(":")[0], [ float(i.split(":")[1]) , float(i.split(":")[2]) ] ) for i in or_ )
 
-def makeSubmit(outdir):
+def makeSubmit(outdir, npoints, nop):
 
-    npoints = args.np
-
+    # Here 3 is a constant because it starts from $1 = dir $2 = npoints
     file_name = outdir + "/submit.sh"
     f = open(file_name, 'w')
+
+    ops_str = ",".join(["$" + str(i) for i in range(3, nop + 3)])
+    pois_str = ",".join(["k_$" + str(i) for i in range(3, nop + 3)])
+    
+    inf_str = ",".join(["$" + str(i) for i in range(nop + 3, 2*nop + 3)])
+    sup_str = ",".join(["$" + str(i) for i in range(2*nop + 3, 3*nop + 3)])
+
+    ranges = ""
+    for i,j,k in zip(pois_str.split(","), inf_str.split(","), sup_str.split(",")):
+        ranges += "{}={},{}:".format(i,j,k)
+    ranges = ranges[:-1] #delete last ":"
+
+
 
     f.write("#!/bin/sh\n\n")
     f.write("#-----------------------------------\n")
@@ -69,9 +81,9 @@ def makeSubmit(outdir):
     f.write('eval `scram run -sh`\n')
     f.write('cd -\n')
     f.write('cp -r $1 ./\n')
-    f.write('text2workspace.py  $1/datacard.txt  -P HiggsAnalysis.AnalyticAnomalousCoupling.AnomalousCouplingEFTNegative:analiticAnomalousCouplingEFTNegative -o combined.root --X-allow-no-signal --PO eftOperators=$3,$4\n')
+    f.write('text2workspace.py  $1/datacard.txt  -P HiggsAnalysis.AnalyticAnomalousCoupling.AnomalousCouplingEFTNegative:analiticAnomalousCouplingEFTNegative -o combined.root --X-allow-no-signal --PO eftOperators={}\n'.format(ops_str))
     f.write('#-----------------------------------\n')
-    f.write('combine -M MultiDimFit combined.root --algo=grid --points $2 -m 125 -t -1 --robustFit=1 --X-rtd FITTER_NEW_CROSSING_ALGO --X-rtd FITTER_NEVER_GIVE_UP --X-rtd FITTER_BOUND --redefineSignalPOIs k_$3,k_$4 --freezeParameters r --setParameters r=1 --setParameterRanges k_$3=$5,$6:k_$4=$7,$8 --verbose -1\n')
+    f.write('combine -M MultiDimFit combined.root --algo=grid --points $2 -m 125 -t -1 --robustFit=1 --X-rtd FITTER_NEW_CROSSING_ALGO --X-rtd FITTER_NEVER_GIVE_UP --X-rtd FITTER_BOUND --redefineSignalPOIs {} --freezeParameters r --setParameters r=1 --setParameterRanges {} --verbose -1\n'.format(pois_str, ranges))
     f.write('cp combined.root $1\n')
     f.write('cp higgsCombineTest.MultiDimFit.mH125.root $1\n')
 
@@ -80,16 +92,25 @@ def makeSubmit(outdir):
     st = os.stat(file_name)
     os.chmod(file_name, st.st_mode | stat.S_IEXEC)
 
+    #.sub file
+    ops_str = " ".join(["$(op{})".format(i) for i in range(1, nop+1)])
+    ops_str_var = ",".join(["op{}".format(i) for i in range(1, nop+1)])
+    min_str = " ".join(["$(min_op{})".format(i) for i in range(1, nop+1)])
+    min_str_var = ",".join(["min_op{}".format(i) for i in range(1, nop+1)])
+    max_str = " ".join(["$(max_op{})".format(i) for i in range(1, nop+1)])
+    max_str_var = ",".join(["max_op{}".format(i) for i in range(1, nop+1)])
+
+
     file_name_1 = outdir + "/submit.sub"
     f1 = open(file_name_1, 'w')
 
     f1.write('Universe    = vanilla\n')
     f1.write('Executable  = submit.sh\n')
-    f1.write('arguments   = $(dir) {} $(op1) $(op2) $(min_op1) $(max_op1) $(min_op2) $(max_op2)\n'.format(npoints))
+    f1.write('arguments   = $(dir) {} {} {} {}\n'.format(npoints, ops_str, min_str, max_str))
     f1.write('output      = $(dir)/submit.out\n')
     f1.write('error       = $(dir)/submit.err\n')
     f1.write('log         = $(dir)/submit.log\n')
-    f1.write('queue dir,op1,op2,min_op1,max_op1,min_op2,max_op2 from list.txt\n')
+    f1.write('queue dir,{},{},{} from list.txt\n'.format(ops_str_var, min_str_var, max_str_var))
     f1.write('+JobFlavour = "longlunch"\n')
 
     f1.close()
@@ -123,7 +144,16 @@ if __name__ == "__main__":
 
     all_sub_paths = []
 
-    makeSubmit(outputFolder, npoints)
+    #deduce number of ops
+    subfolder = subf[0].split("/")[-2]
+    prc = subfolder.split(prefix + "_")[-1]
+    op_ = prc.split(process + "_")[-1]
+    ops = op_.split("_")
+
+    nop = len(ops)
+
+    # make submit files
+    makeSubmit(outputFolder, npoints, nop)
     l = open(outputFolder + "/list.txt", 'w')
 
     print(". . . @ @ @ Retrieving folders @ @ @ . . .")
@@ -135,8 +165,12 @@ if __name__ == "__main__":
         ops = op_.split("_")
         vars_ = glob(s + "/" + model + "/datacards/" + prc + "/*/")
         for var_ in vars_:
-            v_ = var_.split("/")[-2]
-            l.write('{} {} {} {} {} {} {}\n'.format(dst_var, ops[0], ops[1], opr[ops[0]][0], opr[ops[0]][1], opr[ops[1]][0], opr[ops[1]][1]))
+            write = ""
+            write += str(var_)
+            op_str = " ".join(ops)
+            min_str = " ".join([str(opr[op][0]) for op in ops])
+            max_str = " ".join([str(opr[op][1]) for op in ops])
+            l.write('{} {} {} {}\n'.format(var_, op_str, min_str, max_str))
 
     l.close()
 
