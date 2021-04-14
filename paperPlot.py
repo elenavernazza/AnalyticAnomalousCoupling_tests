@@ -12,7 +12,7 @@ import argparse
 clin = ROOT.TColor.GetFreeColorIndex()
 col1 = ROOT.TColor(clin, 0.44213725, 0.05882353, 0.4745098)
 cquad = ROOT.TColor.GetFreeColorIndex()
-col2 = ROOT.TColor(cquad, 0.05882352941, 0.29803921568, 0.36078431372)
+col2 = ROOT.TColor(cquad, 0.0, 0.42745098, 0.23921569)
 ceft1 = ROOT.TColor.GetFreeColorIndex()
 col3 = ROOT.TColor(ceft1, 0.85490196078, 0.2431372549, 0.32156862745)
 ceft2 = ROOT.TColor.GetFreeColorIndex()
@@ -29,6 +29,8 @@ def GetProcess(proc):
         'inWW': "W^{#pm}W^{#mp}+0j",
         'WZQCD': "W^{#pm}Z+2j (QCD)",
         'OSWWQCD': "W^{#pm}W^{#mp}+2j (QCD)",
+        'OSWW_OSWWQCD': "W^{#pm}W^{#mp}+2j (EWK + QCD)",
+        'WZ_WZQCD': "W^{#pm}Z+2j (EWK + QCD)",
     }
 
     return d[proc]
@@ -215,7 +217,7 @@ if __name__ == '__main__':
             if y_min > 0: y_min = 0
             y_min = y_min - 0.1 * abs(y_min)
 
-            y_max = h_sm.GetMaximum() + 0.4* h_sm.GetMaximum()
+            y_max = h_sm.GetMaximum()
 
             h_sm.SetTitle("")
             h_sm.GetYaxis().SetRangeUser(y_min, y_max)
@@ -229,11 +231,14 @@ if __name__ == '__main__':
             h_sm.GetYaxis().SetMaxDigits(maxd)
             h_sm.Draw("hist")
 
+            if h_quad.GetMaximum() > y_max: y_max = h_quad.GetMaximum()
+
             h_quad.SetLineColor(d["quad"])
             h_quad.SetLineWidth(3)
-            h_quad.SetLineStyle(7)
+            h_quad.SetLineStyle(8)
             h_quad.Draw("hist same")
 
+            if h_lin.GetMaximum() > y_max: y_max = h_lin.GetMaximum()
 
             h_lin.SetLineColor(d["lin"])
             h_lin.SetLineWidth(3)
@@ -241,14 +246,18 @@ if __name__ == '__main__':
             h_lin.Draw("hist same")
 
             for i,j in enumerate(h_bsm):
+                if j.GetMaximum() > y_max: y_max = j.GetMaximum()
                 j.SetLineColor(d["BSM"][i])
                 j.SetLineWidth(3)
                 j.Draw("hist same")
+
+            h_sm.GetYaxis().SetRangeUser(y_min, y_max + 0.4*y_max)
+            c.Update()
             
             if legpos == 1:
                 leg = ROOT.TLegend(0.15, 0.55, 0.49, 0.86)
             elif legpos == 2:
-                leg = ROOT.TLegend(0.55, 0.5, 0.9, 0.86)
+                leg = ROOT.TLegend(0.55, 0.5, 0.89, 0.86)
             leg.SetBorderSize(0)
             leg.SetNColumns(1)
             leg.SetTextSize(0.04)
