@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) < 4: sys.exit("[ERROR] Provide folder path, prefix, process name, [npoints = 20000], [models = EFTNeg], [flavour = microcentury], [floatOtherPOI = 0], [ pois = Default ] after running mkDatacards.py ...")
 
-    outputFolder = sys.argv[1]
+    outputFolder = os.getcwd() + "/" + sys.argv[1]
     subf = glob(os.getcwd() + "/" + sys.argv[1] + "/*/")
     prefix = sys.argv[2]
     process = sys.argv[3]
@@ -163,14 +163,14 @@ if __name__ == "__main__":
         prc = subfolder.split(prefix + "_")[-1]
         op_ = prc.split(process + "_")[-1]
         ops = op_.split("_")
-        vars_ = glob(s + "/" + model + "/datacards/" + prc + "/*/")
+        vars_ = glob(s[:-1] + "/" + model + "/datacards/" + prc + "/*/")
         for var_ in vars_:
             write = ""
             write += str(var_)
             op_str = " ".join(ops)
             min_str = " ".join([str(opr[op][0]) for op in ops])
             max_str = " ".join([str(opr[op][1]) for op in ops])
-            l.write('{} {} {} {}\n'.format(var_, op_str, min_str, max_str))
+            l.write('{} {} {} {}\n'.format(var_[:-1], op_str, min_str, max_str))
 
     l.close()
 
