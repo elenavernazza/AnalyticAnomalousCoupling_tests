@@ -123,7 +123,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 4: sys.exit("[ERROR] Provide folder path, prefix, process name, [npoints = 20000], [models = EFTNeg], [flavour = microcentury], [floatOtherPOI = 0], [ pois = Default ] after running mkDatacards.py ...")
 
     outputFolder = sys.argv[1]
-    subf = glob(sys.argv[1] + "/*/")
+    subf = glob(os.getcwd() + "/" + sys.argv[1] + "/*/")
     prefix = sys.argv[2]
     process = sys.argv[3]
     npoints = 20000
