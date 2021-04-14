@@ -249,7 +249,8 @@ if __name__ == "__main__":
                             except:
                                 continue
                         #only add one legend entry, arbitrary
-                        leg.AddEntry(l[0], "#pm {}#sigma".format(i+1), "L")
+                        if len(l) > 0:
+                            leg.AddEntry(l[0], "#pm {}#sigma".format(i+1), "L")
 
                     exp.Draw("P same")
                     leg.Draw()
