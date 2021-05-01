@@ -340,7 +340,7 @@ if __name__ == '__main__':
             c.Update()
             
             if legpos == 1:
-                leg = ROOT.TLegend(0.15, 0.55, 0.54, 0.86)
+                leg = ROOT.TLegend(0.15, 0.5, 0.54, 0.86)
             elif legpos == 2:
                 leg = ROOT.TLegend(0.5, 0.5, 0.89, 0.86)
             leg.SetBorderSize(0)
