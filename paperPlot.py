@@ -479,7 +479,7 @@ if __name__ == '__main__':
                 else:
                     h_err = deepcopy(h_smewk)
                     h_err.Add(h_smqcd)
-
+                    
                 h_err.SetMarkerSize(0)
                 h_err.SetFillColor(ROOT.kBlack)
                 h_err.SetFillStyle(3004)
@@ -548,11 +548,13 @@ if __name__ == '__main__':
 
                 if args.stackQCD == None:
                     h_bsm_ratio_err = deepcopy(h_sm)
+                    h_bsm_ratio_err.Divide(h_sm)
                 else:
                     h_bsm_ratio_err = deepcopy(h_smewk)
                     h_bsm_ratio_err.Add(h_smqcd)
+                    h_bsm_ratio_err.Divide(h_bsm_ratio_err)
+                    if h_bsm_ratio_err.GetMaximum() != 1.0: sys.exit("ERROR")
 
-                h_bsm_ratio_err.Divide(h_sm)
                 h_bsm_ratio_err.SetFillColor(ROOT.kBlack)
                 h_bsm_ratio_err.SetFillStyle(3004)
 
