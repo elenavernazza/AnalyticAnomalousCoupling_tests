@@ -39,6 +39,24 @@ def ConvertOptoLatex(op):
 
     return d[op]
 
+def ConvertProc(proc):
+
+    d = {
+        "SSWW": "W^{#pm}W^{#pm}+2j",
+        "OSWW_OSWWQCD": "W^{#pm}W^{#mp}+2j",
+        "OSWW": "W^{#pm}W^{#mp}+2j",
+        "OSWWQCD": "W^{#pm}W^{#mp}+2j",
+        "WZ_WZQCD": "W^{#pm}Z+2j",
+        "WZ": "W^{#pm}Z+2j",
+        "WZQCD": "W^{#pm}Z+2j",
+        "inWW": "W^{#pm}W^{#mp}+0j",
+        "ZV": "ZV+2j",
+        "combined": "Combined",
+    }
+
+    if proc in d.keys(): return d[proc]
+    else: return proc
+
 def RetrieveCont(operators, op, proc, maxNLL):
 
     file = operators[op][proc]['path']
@@ -165,7 +183,7 @@ def Retrieve2DLikelihood(operators, op, maxNLL):
         ROOT.gPad.Update()
 
         conts = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
-        cont_graphs = [deepcopy(conts.At(i).First()) for i in range(2)]
+        cont_graphs = [deepcopy(list(conts.At(i))) for i in range(2)]
 
         gs = deepcopy(graphScan)
 
@@ -178,8 +196,9 @@ def Retrieve2DLikelihood(operators, op, maxNLL):
         print(operators[op][proc]['op'],op)
         color = operators[op][proc]['linecolor']
         lines = operators[op][proc]['linesize']
-        cont_graphs[0].SetLineWidth(4)
-        cont_graphs[0].SetLineColor(color)
+        for i in range(len(cont_graphs[0])):
+            cont_graphs[0][i].SetLineWidth(4)
+            cont_graphs[0][i].SetLineColor(color)
 
         canvas_d.append({
             '1sg' : cont_graphs[0],
@@ -258,7 +277,7 @@ def Retrieve2DLikelihoodCombined(file, op, maxNLL, xscale, yscale):
     ROOT.gPad.Update()
 
     conts = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
-    cont_graphs = [deepcopy(conts.At(i).First()) for i in range(2)]
+    cont_graphs = [deepcopy(list(conts.At(i))) for i in range(2)]
 
     gs = deepcopy(graphScan)
 
@@ -334,38 +353,46 @@ if __name__ == "__main__":
                 cols = [ROOT.kAzure+1, ROOT.kGray+2, ROOT.kViolet-4, ROOT.kSpring+9, ROOT.kOrange+10]* int(n_)
 
                 c.SetGrid()
-                y_min = canvas_d['1sg'][idx*5].GetYaxis().GetXmin()
-                y_max = canvas_d['1sg'][idx*5].GetYaxis().GetXmax()
-                y_min_new = 1.1*canvas_d['1sg'][idx*5].GetYaxis().GetXmin()
-                y_max_new = 1.3*canvas_d['1sg'][idx*5].GetYaxis().GetXmax() 
-                canvas_d['1sg'][idx*5].GetXaxis().SetLimits(-1, 1)
-                canvas_d['1sg'][idx*5].GetYaxis().SetRangeUser(y_min_new, y_max_new) #add legend space
-                canvas_d['1sg'][idx*5].GetYaxis().SetTitleOffset(1.6)
-                canvas_d['1sg'][idx*5].GetYaxis().SetTitle(ConvertOptoLatex(op))
-                canvas_d['1sg'][idx*5].GetXaxis().SetTitle("2nd Operator")
-                canvas_d['1sg'][idx*5].SetTitle("")
-                canvas_d['1sg'][idx*5].SetLineStyle(linestyles[0])
-                canvas_d['1sg'][idx*5].SetLineColor(cols[0])
-                canvas_d['1sg'][idx*5].Draw("AL")
-                canvas_d['min'][idx*5].Draw("P")
+                
+                #find mminimu
+                y_min = 0
+                y_max = 0
+                for gid in range(len(canvas_d['1sg'][idx*5])):
+                    if canvas_d['1sg'][idx*5][gid].GetYaxis().GetXmin() < y_min : y_min = canvas_d['1sg'][idx*5][gid].GetYaxis().GetXmin()
+                    if canvas_d['1sg'][idx*5][gid].GetYaxis().GetXmax() < y_max : y_max = canvas_d['1sg'][idx*5][gid].GetYaxis().GetXmax()
+
+                y_min_new = 1.1*y_min
+                y_max_new = 1.3*y_max
+
+                canvas_d['1sg'][idx*5][0].GetXaxis().SetLimits(-1, 1)
+                canvas_d['1sg'][idx*5][0].GetYaxis().SetRangeUser(y_min_new, y_max_new) #add legend space
+                canvas_d['1sg'][idx*5][0].GetYaxis().SetTitleOffset(1.6)
+                canvas_d['1sg'][idx*5][0].GetYaxis().SetTitle(ConvertOptoLatex(op))
+                canvas_d['1sg'][idx*5][0].GetXaxis().SetTitle("2nd Operator")
+                canvas_d['1sg'][idx*5][0].SetTitle("")
+                canvas_d['1sg'][idx*5][0].SetLineStyle(linestyles[0])
+                canvas_d['1sg'][idx*5][0].SetLineColor(cols[0])
+                canvas_d['1sg'][idx*5][0].Draw("AL")
+                canvas_d['min'][idx*5][0].Draw("P")
 
                 name = ConvertOptoLatex(canvas_d['n_op'][idx*5])
                 if canvas_d['scale'][idx*5] != 1: name = str(canvas_d['scale'][idx*5]) + " #times " + name
 
-                leg.AddEntry(canvas_d['1sg'][idx*5], name, "L")
+                leg.AddEntry(canvas_d['1sg'][idx*5][0], name, "L")
 
                 for i,j, n, ls, col, scale in zip(canvas_d['1sg'][idx*5 +1:  (idx*5) + 5], canvas_d['min'][idx*5 +1:  (idx*5) + 5], canvas_d['n_op'][idx*5 +1:  (idx*5) + 5], linestyles[idx*5 +1:  (idx*5) + 5], cols[idx*5 +1:  (idx*5) + 5], canvas_d['scale'][idx*5 +1:  (idx*5) + 5]):
-                    i.SetLineStyle(ls)
-                    i.SetLineColor(col)
-                    i.Draw("L same")
+                    for g in i:
+                        g.SetLineStyle(ls)
+                        g.SetLineColor(col)
+                        g.Draw("L same")
+                        if g.GetYaxis().GetXmin() < y_min : 
+                            y_min = g.GetYaxis().GetXmin()
+                        if g.GetYaxis().GetXmax() > y_max :
+                            y_max = g.GetYaxis().GetXmax()
                     j.Draw("P same")
-                    if i.GetYaxis().GetXmin() < y_min : 
-                        y_min = i.GetYaxis().GetXmin()
-                    if i.GetYaxis().GetXmax() > y_max :
-                        y_max = i.GetYaxis().GetXmax()
                     name = ConvertOptoLatex(n) 
                     if scale !=1 : name =  str(scale) + " #times " + ConvertOptoLatex(n)
-                    leg.AddEntry(i, name, "L")
+                    leg.AddEntry(i[0], name, "L")
 
                 #Draw fancy
 
@@ -416,6 +443,8 @@ if __name__ == "__main__":
 
 
             graphs = []
+
+            max_x = max_y = min_y = min_x = 0
             
             #cycling on all the channels in the cfg
             for key in channels:
@@ -425,27 +454,76 @@ if __name__ == "__main__":
                 # and the minimum (0,0) by construction
                 gs, cont_graphs, exp = Retrieve2DLikelihoodCombined(operators[op_pair][key]['path'], 
                                                                 [op_x, op_y], args.maxNLL, 1., 1.)
+                """
+                for j in cont_graphs:
+                    for item in j:
+                        if item.GetXaxis().GetXmin() < min_x: min_x = item.GetXaxis().GetXmin()
+                        if item.GetXaxis().GetXmax() > max_x: max_x = item.GetXaxis().GetXmax()
+                        if item.GetYaxis().GetXmin() < min_y: min_y = item.GetYaxis().GetXmin()
+                        if item.GetYaxis().GetXmax() > max_y: max_y = item.GetYaxis().GetXmax()
+                """
 
-
-                min_x, max_x = cont_graphs[0].GetXaxis().GetXmin(), cont_graphs[0].GetXaxis().GetXmax() 
-                min_y, max_y = cont_graphs[0].GetYaxis().GetXmin(), cont_graphs[0].GetYaxis().GetXmax() 
+                # min_x, max_x = cont_graphs[0].GetXaxis().GetXmin(), cont_graphs[0].GetXaxis().GetXmax() 
+                # min_y, max_y = cont_graphs[0].GetYaxis().GetXmin(), cont_graphs[0].GetYaxis().GetXmax() 
 
                 #set style
-                cont_graphs[0].SetLineWidth(4)
+                for j in range(len(cont_graphs)):
+                    for h in range(len(cont_graphs[j])):
+                        cont_graphs[j][h].SetLineWidth(4)
 
                 
 
                 #shaded combination 
                 if key == "combined":
-                    cont_graphs[0].SetLineColorAlpha(int(operators[op_pair][key]['color']), 0.7)
-                else:
-                    cont_graphs[0].SetLineColor(int(operators[op_pair][key]['color']))
-                    
-                cont_graphs[0].SetLineStyle(int(operators[op_pair][key]['linestyle']))
+                    #for j in range(len(cont_graphs)):
+                    for h in range(len(cont_graphs[0])):
+                        cont_graphs[0][h].SetLineColorAlpha(int(operators[op_pair][key]['color']), 0.9)
+                        cont_graphs[0][h].SetFillStyle(1001) #sollid
+                        cont_graphs[0][h].SetFillColorAlpha(int(operators[op_pair][key]['color']), 0.1)
+                        if cont_graphs[0][h].GetXaxis().GetXmin() < min_x: min_x = cont_graphs[j][h].GetXaxis().GetXmin()
+                        if cont_graphs[0][h].GetXaxis().GetXmax() > max_x: max_x = cont_graphs[j][h].GetXaxis().GetXmax()
+                        if cont_graphs[0][h].GetYaxis().GetXmin() < min_y: min_y = cont_graphs[j][h].GetYaxis().GetXmin()
+                        if cont_graphs[0][h].GetYaxis().GetXmax() > max_y: max_y = cont_graphs[j][h].GetYaxis().GetXmax()
+                        # cont_graphs[0].SetLineColorAlpha(int(operators[op_pair][key]['color']), 0.7)
 
+                    #centering on the combined
+                    min_x = 4*min_x
+                    max_x = 4*max_x 
+                    min_y = 2*min_y 
+                    max_y = 2*max_y
+                    
+                else:
+                    for j in range(len(cont_graphs)):
+                        for h in range(len(cont_graphs[j])):
+                            cont_graphs[j][h].SetLineColor(int(operators[op_pair][key]['color']))
+                            cont_graphs[j][h].SetFillStyle(0)
+                            cont_graphs[j][h].SetFillColor(0)
+                            #cont_graphs[j][h].SetFillColorAlpha(int(operators[op_pair][key]['color']), 0.1)
+                            min_x = cont_graphs[j][h].GetXaxis().GetXmin()
+                            max_x = cont_graphs[j][h].GetXaxis().GetXmax()
+                            min_y = cont_graphs[j][h].GetYaxis().GetXmin()
+                            max_y = cont_graphs[j][h].GetYaxis().GetXmax()
+                
+                for j in range(len(cont_graphs)):
+                        for h in range(len(cont_graphs[j])):
+                            cont_graphs[j][h].SetLineStyle(int(operators[op_pair][key]['linestyle']))
+                
+                #print(cont_graphs[0])
                 graphs.append([key, cont_graphs[0], exp, [min_x, max_x],[min_y, max_y]])
 
             #zoomed version
+            
+            # put the combined graph at first position in the list
+            # soit will be plotted first
+            combo_id = 0
+            for idx, g in enumerate(graphs):
+                if g[0] == "combined": combo_id = idx 
+
+            combo = graphs.pop(combo_id)
+            graphs.insert(0, combo)
+            
+            # now plotting for real
+
             c = ROOT.TCanvas("c_{}".format(op_pair), "c_{}".format(op_pair), 1000, 1000)
 
             margins = 0.13
@@ -457,33 +535,48 @@ if __name__ == "__main__":
             ROOT.gPad.SetFrameLineWidth(3)
             ROOT.gPad.SetTicks()
 
-            leg = ROOT.TLegend(0.15, 0.8, 0.85, 0.85)
+            leg = ROOT.TLegend(0.5, 0.65, 0.85, 0.85)
             leg.SetBorderSize(0)
-            leg.SetNColumns(len(graphs))
-            leg.SetTextSize(0.025)
+            leg.SetNColumns((int(len(graphs) + 1)/2))
+            leg.SetTextSize(0.03)
 
-            c.SetGrid()
+            #c.SetGrid()
 
             #first graph
-            graphs[0][1].GetYaxis().SetTitleOffset(1.5)
-            graphs[0][1].GetXaxis().SetTitleOffset(1.2)
-            graphs[0][1].GetYaxis().SetTitle(ConvertOptoLatex(op_y))
-            graphs[0][1].GetXaxis().SetTitle(ConvertOptoLatex(op_x))
-            graphs[0][1].SetTitle("")
-            #graphs[0][1].SetLineStyle(linestyles[0])
-            graphs[0][1].Draw("AL")
+            for i in range(len(graphs[0][1])):
+                graphs[0][1][i].GetYaxis().SetTitleOffset(1.5)
+                graphs[0][1][i].GetXaxis().SetTitleOffset(1.2)
+                graphs[0][1][i].GetYaxis().SetTitle(ConvertOptoLatex(op_y))
+                graphs[0][1][i].GetXaxis().SetTitle(ConvertOptoLatex(op_x))
+                graphs[0][1][i].SetTitle("")
+                #graphs[0][1].SetLineStyle(linestyles[0])
+                if i == 0:
+                    #graphs[0][1][i].GetYaxis().SetRangeUser(graphs[0][1][i].GetYaxis().GetXmin(), graphs[0][1][i].GetYaxis().GetXmax() + 0.2*(graphs[0][1][i].GetYaxis().GetXmax()))
+                    graphs[0][1][i].GetYaxis().SetRangeUser(graphs[0][4][0], graphs[0][4][1])
+                    graphs[0][1][i].GetXaxis().SetRangeUser(graphs[0][3][0], graphs[0][3][1])
+                    if graphs[0][0]  == "combined": graphs[0][1][i].Draw("ALF")
+                    else: graphs[0][1][i].Draw("AL")
+                else:
+                    if graphs[0][0]  == "combined": graphs[0][1][i].Draw("LF same")
+                    else: graphs[0][1][i].Draw("L same")
             graphs[0][2].Draw("P same")
 
+            leg.AddEntry(graphs[0][2], "SM", "P")
+
             name = graphs[0][0]
-            leg.AddEntry(graphs[0][1], name, "L")
+            #leg.AddEntry(graphs[0][1][0], name, "L")
+            leg.AddEntry(graphs[0][1][0], ConvertProc(name), "F")
 
             for i in graphs[1:]:
-                i[1].Draw("L same")
+                for j in i[1]:
+                    if i[0] == "combined": j.Draw("LF same")
+                    else: j.Draw("L same")
                 i[2].Draw("P same")
                 name = i[0]
-                if name == "combined": name = "Combined"
+                #if name == "combined": name = "Combined"
                 #if scale!=1 : name =  str(scale) + " #times " + n
-                leg.AddEntry(i[1], name, "L")
+                #leg.AddEntry(i[1][0], name, "L")
+                leg.AddEntry(i[1][0], ConvertProc(name), "F")
 
             #Draw fancy
 
@@ -545,14 +638,32 @@ if __name__ == "__main__":
             ROOT.gPad.SetFrameLineWidth(3)
             ROOT.gPad.SetTicks()
 
-            leg = ROOT.TLegend(0.15, 0.8, 0.85, 0.85)
+            leg = ROOT.TLegend(0.5, 0.65, 0.85, 0.85)
             leg.SetBorderSize(0)
-            leg.SetNColumns(len(graphs))
-            leg.SetTextSize(0.025)
+            leg.SetNColumns(int(len(graphs)/2))
+            leg.SetTextSize(0.03)
 
-            c.SetGrid()
+            #c.SetGrid()
 
             #first graph
+            for i in range(len(graphs[0][1])):
+                graphs[0][1][i].GetYaxis().SetRangeUser(min_y, max_y + 0.3*max_y)
+                graphs[0][1][i].GetXaxis().SetRangeUser(min_x, max_x)
+                graphs[0][1][i].GetYaxis().SetTitleOffset(1.5)
+                graphs[0][1][i].GetXaxis().SetTitleOffset(1.2)
+                graphs[0][1][i].GetYaxis().SetTitle(ConvertOptoLatex(op_y))
+                graphs[0][1][i].GetXaxis().SetTitle(ConvertOptoLatex(op_x))
+                graphs[0][1][i].SetTitle("")
+                #graphs[0][1].SetLineStyle(linestyles[0])
+                if i == 0:
+                    graphs[0][1][i].Draw("ALF")
+                else:
+                    graphs[0][1][i].Draw("LF same")
+
+            graphs[0][2].Draw("P same")
+            leg.AddEntry(graphs[0][2], "SM", "P")
+
+            """
             graphs[0][1].GetYaxis().SetRangeUser(min_y, max_y)
             graphs[0][1].GetXaxis().SetRangeUser(min_x, max_x)
             graphs[0][1].GetYaxis().SetTitleOffset(1.5)
@@ -563,17 +674,21 @@ if __name__ == "__main__":
             #graphs[0][1].SetLineStyle(linestyles[0])
             graphs[0][1].Draw("AL")
             graphs[0][2].Draw("P same")
+            """
 
             name = graphs[0][0]
-            leg.AddEntry(graphs[0][1], name, "L")
+            # leg.AddEntry(graphs[0][1][0], name, "L")
+            leg.AddEntry(graphs[0][1][0], ConvertProc(name), "F")
 
             for i in graphs[1:]:
-                i[1].Draw("L same")
+                for j in i[1]:
+                    j.Draw("L same")
                 i[2].Draw("P same")
                 name = i[0]
                 if name == "combined": name = "Combined"
-                #if scale!=1 : name =  str(scale) + " #times " + n
-                leg.AddEntry(i[1], name, "L")
+                # if scale!=1 : name =  str(scale) + " #times " + n
+                leg.AddEntry(i[1][0], ConvertProc(name), "F")
+                # leg.AddEntry(i[1][0], name, "L")
 
             #Draw fancy
 

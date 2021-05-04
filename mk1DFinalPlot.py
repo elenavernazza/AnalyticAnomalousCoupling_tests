@@ -39,6 +39,26 @@ def ConvertOptoLatex(op):
 
     return d[op]
 
+def ConvertProc(proc):
+
+    d = {
+        "SSWW": "W^{#pm}W^{#pm}+2j",
+        "OSWW_OSWWQCD": "W^{#pm}W^{#mp}+2j",
+        "OSWW": "W^{#pm}W^{#mp}+2j",
+        "OSWWQCD": "W^{#pm}W^{#mp}+2j",
+        "WZ_WZQCD": "W^{#pm}Z+2j",
+        "WZ": "W^{#pm}Z+2j",
+        "WZQCD": "W^{#pm}Z+2j",
+        "inWW": "W^{#pm}W^{#mp}+0j",
+        "WW": "W^{#pm}W^{#mp}+0j",
+        "ZZ": "ZZ+2j",
+        "ZV": "ZV+2j",
+        "combined": "Combined",
+    }
+
+    if proc in d.keys(): return d[proc]
+    else: return proc
+
 def RetrieveLL(path, op, maxNLL):
 
     
@@ -60,6 +80,8 @@ def RetrieveLL(path, op, maxNLL):
 
     graphScan.GetYaxis().SetTitle("-2 #Delta LL")
     graphScan.GetXaxis().SetTitle(ConvertOptoLatex(op))
+    graphScan.GetYaxis().SetTitleSize(0.04)
+    graphScan.GetXaxis().SetTitleSize(0.04)
 
     return graphScan
 
@@ -79,6 +101,7 @@ if __name__ == "__main__":
     parser.add_argument('--maxNLL',     dest='maxNLL',     help='Max likelihood', required = False, default = "20")
     parser.add_argument('--outf',     dest='outf',     help='out folder name', required = False, default = "summary2D")
     parser.add_argument('--lumi',     dest='lumi',     help='lumi to plot', required = False, default = "100")
+    parser.add_argument('--splitLeg',     dest='splitLeg',     help='Do not plot legend on canvas but in a sepaerate plot', action="store_true", default = False)
     args = parser.parse_args()
 
     is_combo = False
@@ -186,7 +209,7 @@ if __name__ == "__main__":
                     tex4.SetLineWidth(2)
                     tex4.Draw()
 
-                leg.Draw()
+                if not args.splitLeg: leg.Draw()
                 c.Draw()
                 c.Print(args.outf + "/" + op + "/r_" + op + "{}.pdf".format(idx))
 
@@ -213,7 +236,8 @@ if __name__ == "__main__":
 
 
                 min_x, max_x = LL.GetXaxis().GetXmin(), LL.GetXaxis().GetXmax() 
-                min_y, max_y = LL.GetYaxis().GetXmin(), LL.GetYaxis().GetXmax()
+                #min_y, max_y = LL.GetYaxis().GetXmin(), LL.GetYaxis().GetXmax()
+                min_y, max_y = LL.GetYaxis().GetXmin(), 2*float(args.maxNLL)
 
                 #Because otherwise they wold overlap with the frame
                 LL.GetYaxis().SetRangeUser(min_y - 0.05 , max_y)
@@ -276,15 +300,6 @@ if __name__ == "__main__":
             o_sigma.Draw("L same")
             t_sigma.Draw("L same")
 
-            os = ROOT.TLatex()
-            os.SetTextFont(42)
-            os.SetTextSize(0.03)
-            os.DrawLatex( x_frac, 1.05, '68%' )
-            ts = ROOT.TLatex()
-            ts.SetTextFont(42)
-            ts.SetTextSize(0.03)
-            ts.DrawLatex( x_frac, 3.89, '95%' )
-
             name = graphs[0][0]
             leg.AddEntry(graphs[0][1], name, "L")
 
@@ -293,6 +308,15 @@ if __name__ == "__main__":
                 name = i[0]
                 if name =="combined": name = "Combined"
                 leg.AddEntry(i[1], name, "L")
+
+            os = ROOT.TLatex()
+            os.SetTextFont(42)
+            os.SetTextSize(0.03)
+            os.DrawLatex( x_frac, 1.05, '68%' )
+            ts = ROOT.TLatex()
+            ts.SetTextFont(42)
+            ts.SetTextSize(0.03)
+            ts.DrawLatex( x_frac, 3.89, '95%' )
 
             #Draw fancy
 
@@ -319,32 +343,14 @@ if __name__ == "__main__":
                 tex4.SetLineWidth(2)
                 tex4.Draw()
 
-            leg.Draw()
+            if not args.splitLeg: leg.Draw()
             c.Draw()
             c.Print(args.outf + "/" + "_".join(i for i in channels) + "_" + op + ".pdf")
             c.Print(args.outf + "/" + "_".join(i for i in channels) + "_" + op + ".png")
 
-            """
-            #unzoomed version
+        if args.splitLeg:
 
-            lower_x = []
-            higher_x = []
-            lower_y = []
-            higher_y = []
-
-            for i in graphs:
-                lower_x.append(i[3][0])
-                higher_x.append(i[3][1])
-                lower_y.append(i[4][0])
-                higher_y.append(i[4][1])
-            
-            min_x  = min(lower_x)
-            max_x  = max(higher_x)
-            min_y  = min(lower_y)
-            max_y  = max(higher_y)
-
-            c = ROOT.TCanvas("c_{}_unzoomed".format(op_pair), "c_{}_unzoomed".format(op_pair), 1000, 1000)
-
+            c = ROOT.TCanvas("c_{}".format(op), "c_{}".format(op), 1000, 1000)
             margins = 0.13
 
             ROOT.gPad.SetRightMargin(margins)
@@ -354,63 +360,41 @@ if __name__ == "__main__":
             ROOT.gPad.SetFrameLineWidth(3)
             ROOT.gPad.SetTicks()
 
-            leg = ROOT.TLegend(0.15, 0.8, 0.85, 0.85)
+            leg = ROOT.TLegend(0.15, 0.15, 0.85, 0.85)
             leg.SetBorderSize(0)
-            leg.SetNColumns(len(graphs))
-            leg.SetTextSize(0.025)
+            leg.SetNColumns(1)
+            leg.SetTextSize(0.06)
 
-            c.SetGrid()
-
-            #first graph
-            graphs[0][1].GetYaxis().SetRangeUser(min_y, max_y)
-            graphs[0][1].GetXaxis().SetRangeUser(min_x, max_x)
-            graphs[0][1].GetYaxis().SetTitleOffset(1.5)
-            graphs[0][1].GetXaxis().SetTitleOffset(1.2)
-            graphs[0][1].GetYaxis().SetTitle(ConvertOptoLatex(op_y))
-            graphs[0][1].GetXaxis().SetTitle(ConvertOptoLatex(op_x))
-            graphs[0][1].SetTitle("")
-            #graphs[0][1].SetLineStyle(linestyles[0])
-            graphs[0][1].Draw("AL")
-            graphs[0][2].Draw("P same")
+            fakeG = deepcopy(graphs[0][1])
+            fakeG.GetYaxis().SetTitleOffset(1.1)
+            fakeG.GetYaxis().SetTitleOffset(1.1)
+            fakeG.SetLineColor(0)
+            fakeG.GetXaxis().SetLabelSize(0)
+            fakeG.GetYaxis().SetLabelSize(0)
+            fakeG.GetXaxis().SetTitle("")
+            fakeG.GetYaxis().SetTitle("")
+            fakeG.SetTitle("")
+            fakeG.Draw("AL")
 
             name = graphs[0][0]
-            leg.AddEntry(graphs[0][1], name, "L")
+            leg.AddEntry(graphs[0][1], ConvertProc(name), "F")
 
             for i in graphs[1:]:
-                i[1].Draw("L same")
-                i[2].Draw("P same")
                 name = i[0]
-                #if scale!=1 : name =  str(scale) + " #times " + n
-                leg.AddEntry(i[1], name, "L")
-
-            #Draw fancy
+                leg.AddEntry(i[1], ConvertProc(name), "F")
 
             tex3 = ROOT.TLatex(0.86,.89,"100 fb^{-1}   (13 TeV)")
             tex3.SetNDC()
             tex3.SetTextAlign(31)
             tex3.SetTextFont(42)
             tex3.SetTextSize(0.04)
-            tex3.SetLineWidth(3)
+            tex3.SetLineWidth(2)
             tex3.Draw()
 
-            if "process" in plt_options.keys():
-                if 'xpos' not in  plt_options.keys(): xpos = 0.35
-                else: xpos = plt_options['xpos']
-                if 'size' not in  plt_options.keys(): size = 0.04
-                else: size = plt_options['size']
-                if 'font' not in  plt_options.keys(): font = 42
-                else: font = plt_options['font']
-                tex4 = ROOT.TLatex(xpos,.89,plt_options['process'])
-                tex4.SetNDC()
-                tex4.SetTextAlign(31)
-                tex4.SetTextFont(font)
-                tex4.SetTextSize(size)
-                tex4.SetLineWidth(3)
-                tex4.Draw()
-
             leg.Draw()
+
             c.Draw()
-            c.Print(args.outf + "/" + op_pair + "_unzoomed.pdf")
-            """
+            c.Print(args.outf + "/legend.pdf")
+            c.Print(args.outf + "/legend.png")
 
-
+            

@@ -80,7 +80,11 @@ if __name__ == "__main__":
                     ch_var = (ch_var.strip(" ")).split(" ")
                     for i in ch_var:
                         if i != '' and i != "\n":
-                            all_vars.append([i.strip("\n").split("_")[0], "_".join(i.strip("\n").split("_")[1:])]) #in case of variables with underscores
+                            var = i.split("_")[-1].split("\n")[0]
+                            channel = i.split("_" + var)[0]
+                            print(channel, var)
+                            #all_vars.append([i.strip("\n"), "_".join(i.strip("\n").split("_")[1:])]) #in case of variables with underscores
+                            all_vars.append([channel, var])
                     break
 
             channels = [i[0] for i in all_vars]
